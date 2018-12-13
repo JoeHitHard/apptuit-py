@@ -2,7 +2,7 @@
 Client module for Apptuit APIs
 """
 
-from os import environ
+import os
 from collections import defaultdict
 import json
 from string import ascii_letters, digits
@@ -21,10 +21,8 @@ APPTUIT_PY_TAGS = "APPTUIT_PY_TAGS"
 VALID_CHARSET = set(ascii_letters + digits + "-_./")
 INVALID_CHARSET = frozenset(map(chr, range(128))) - VALID_CHARSET
 
-
 def _contains_valid_chars(string):
     return INVALID_CHARSET.isdisjoint(string)
-
 
 def _create_payload(datapoints):
     data = []
@@ -37,14 +35,12 @@ def _create_payload(datapoints):
         data.append(row)
     return data
 
-
 def _generate_query_string(query_string, start, end):
     ret = "?start=" + str(start)
     if end:
         ret += "&end=" + str(end)
     ret += "&q=" + quote(query_string, safe='')
     return ret
-
 
 def _parse_response(resp, start, end=None):
     json_resp = json.loads(resp)
@@ -74,12 +70,12 @@ def _parse_response(resp, start, end=None):
             qresult[output_id].series.append(series)
     return qresult
 
-
 def _get_token_from_environment():
-    try:
-        return environ[APPTUIT_API_TOKEN]
-    except KeyError as e:
-        raise ValueError("Invalid Token, 'APPTUIT_API_TOKEN' is not available in environment variable.")
+    token = os.environ.get(APPTUIT_API_TOKEN)
+    if not token:
+        raise ValueError("Invalid Token, 'APPTUIT_API_TOKEN' "
+                         "is not available in environment variable.")
+    return token
 
 
 class Apptuit(object):
@@ -97,7 +93,7 @@ class Apptuit(object):
 
         """
         self.token = token
-        if self.token == "" or self.token is None:
+        if not self.token:
             self.token = _get_token_from_environment()
         self.endpoint = api_endpoint
         if self.endpoint[-1] == '/':
@@ -319,11 +315,17 @@ class DataPoint(object):
 
     def _get_tags_from_environment(self):
         try:
-            tags_str = environ[APPTUIT_PY_TAGS]
+            tags_str = os.environ.get(APPTUIT_PY_TAGS)
             tags = json.loads(tags_str)
             return tags
-        except KeyError:
-            raise ValueError("Ivalid tags: Metric: " + self.metric + " need minimum one tag, and 'APPTUIT_PY_TAGS' is not available in environment variable")
+        except ValueError:
+            raise ValueError("Ivalid tags: Metric: "
+                             + self.metric +
+                             tags_str)
+        except TypeError:
+            raise ValueError("Ivalid tags: Metric: "
+                             + self.metric)
+
     @property
     def metric(self):
         return self._metric
@@ -341,7 +343,7 @@ class DataPoint(object):
 
     @tags.setter
     def tags(self, tags):
-        if tags is None or tags == {}:
+        if not tags:
             tags = self._get_tags_from_environment()
         if not isinstance(tags, dict):
             raise ValueError("Expected a value of type dict for tags")
