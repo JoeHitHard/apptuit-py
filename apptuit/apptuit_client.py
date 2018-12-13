@@ -21,6 +21,7 @@ APPTUIT_PY_TAGS = "APPTUIT_PY_TAGS"
 VALID_CHARSET = set(ascii_letters + digits + "-_./")
 INVALID_CHARSET = frozenset(map(chr, range(128))) - VALID_CHARSET
 
+
 def _contains_valid_chars(string):
     return INVALID_CHARSET.isdisjoint(string)
 
@@ -43,6 +44,7 @@ def _generate_query_string(query_string, start, end):
         ret += "&end=" + str(end)
     ret += "&q=" + quote(query_string, safe='')
     return ret
+
 
 def _parse_response(resp, start, end=None):
     json_resp = json.loads(resp)
@@ -73,7 +75,7 @@ def _parse_response(resp, start, end=None):
     return qresult
 
 
-def _get_token_from_environment(self):
+def _get_token_from_environment():
     try:
         return environ[APPTUIT_API_TOKEN]
     except KeyError as e:
@@ -96,7 +98,7 @@ class Apptuit(object):
         """
         self.token = token
         if self.token == "" or self.token is None:
-            self.token=self._get_token_from_environment()
+            self.token = _get_token_from_environment()
         self.endpoint = api_endpoint
         if self.endpoint[-1] == '/':
             self.endpoint = self.endpoint[:-1]
