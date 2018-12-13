@@ -67,6 +67,9 @@ def _get_token_from_environment():
     return token
 
 def environ_tag_str_to_dict(tags_str):
+    if not tags_str:
+        tags = {}
+        return tags
     tags = {}
     tags_split = tags_str.split(',')
     for tag in tags_split:
@@ -79,7 +82,7 @@ def environ_tag_str_to_dict(tags_str):
     return tags
 
 def _get_tags_from_environment():
-    tags_str = os.environ.get(APPTUIT_PY_TAGS, default="")
+    tags_str = os.environ.get(APPTUIT_PY_TAGS)
     tags = environ_tag_str_to_dict(tags_str)
     return tags
 
