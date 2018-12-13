@@ -16,6 +16,8 @@ import zlib
 import requests
 import pandas as pd
 
+APPTUIT_API_TOKEN = "APPTUIT_API_TOKEN"
+APPTUIT_PY_TAGS = "APPTUIT_PY_TAGS"
 VALID_CHARSET = set(ascii_letters + digits + "-_./")
 INVALID_CHARSET = frozenset(map(chr, range(128))) - VALID_CHARSET
 
@@ -94,7 +96,7 @@ class Apptuit(object):
 
     def _get_token_from_environment(self):
         try:
-            return environ["APPTUIT_API_TOKEN"]
+            return environ[APPTUIT_API_TOKEN]
         except KeyError as e:
             raise ValueError("Invalid Token, 'APPTUIT_API_TOKEN' is not available in environment variable.")
 
@@ -307,13 +309,18 @@ class DataPoint(object):
             timestamp: Number of seconds since Unix epoch
             value: value of the metric at this timestamp (int or float)
         """
-        if tags is None or tags == {}:
-            raise ValueError("Ivalid tags: Metric: "+metric+" need minimum one tag.")
         self.metric = metric
         self.tags = tags
         self.timestamp = timestamp
         self.value = value
 
+    def _get_tags_from_environment(self):
+        try:
+            tags_str=environ[APPTUIT_PY_TAGS]
+            tags=json.loads(tags_str)
+            return tags
+        except KeyError as e:
+            raise ValueError("Ivalid tags: Metric: " + self.metric + " need minimum one tag, and 'APPTUIT_PY_TAGS' is not available in environment variable")
     @property
     def metric(self):
         return self._metric
@@ -331,6 +338,8 @@ class DataPoint(object):
 
     @tags.setter
     def tags(self, tags):
+        if tags is None or tags == {}:
+            tags=self._get_tags_from_environment()
         if not isinstance(tags, dict):
             raise ValueError("Expected a value of type dict for tags")
         for tagk, tagv in tags.items():
