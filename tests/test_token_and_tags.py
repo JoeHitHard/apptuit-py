@@ -86,10 +86,36 @@ def test_datapoint_tags_take_priority():
     test_val = 123
     dp1 = DataPoint("test_metric", {"host": "host2", "ip": "2.2.2.2", "test": 1}, test_val, test_val)
     dp2 = DataPoint("test_metric", {"test": 2}, test_val, test_val)
+    dp3 = DataPoint("test_metric", {}, test_val, test_val)
+    payload = client._create_payload([dp1, dp2, dp3])
+    assert_equals(len(payload), 3)
+    assert_equals(payload[0]["tags"], {"host": "host2", "ip": "2.2.2.2", "test": 1})
+    assert_equals(payload[1]["tags"], {"host": "host1", "ip": "1.1.1.1", "test": 2})
+    assert_equals(payload[2]["tags"], {"host": "host1", "ip": "1.1.1.1"})
+    assert_equals(client._environ_tags, {"host": "host1", "ip": "1.1.1.1"})
+    mock_environ.stop()
+
+def test_no_environ_tags():
+    """
+        Test No Environ tags work
+    """
+    test_val = 123
+    mock_environ = patch.dict(os.environ, {APPTUIT_API_TOKEN: "environ_token"})
+    mock_environ.start()
+    client = Apptuit()
+    dp1 = DataPoint("test_metric", {"host": "host2", "ip": "2.2.2.2", "test": 1}, test_val, test_val)
+    dp2 = DataPoint("test_metric", {"test": 2}, test_val, test_val)
     payload = client._create_payload([dp1, dp2])
     assert_equals(len(payload), 2)
     assert_equals(payload[0]["tags"], {"host": "host2", "ip": "2.2.2.2", "test": 1})
-    assert_equals(payload[1]["tags"], {"host": "host1", "ip": "1.1.1.1", "test": 2})
+    assert_equals(payload[1]["tags"], {"test": 2})
+    registry = MetricsRegistry()
+    counter = registry.counter("counter")
+    counter.inc(1)
+    reporter = ApptuitReporter(registry=registry, tags={"host": "reporter", "ip": "2.2.2.2"})
+    payload = reporter.client._create_payload(reporter._collect_data_points(reporter.registry))
+    assert_equals(len(payload), 1)
+    assert_equals(payload[0]["tags"], {'host': 'reporter', 'ip': '2.2.2.2'})
     mock_environ.stop()
 
 def test_reporter_tags_take_priority():
