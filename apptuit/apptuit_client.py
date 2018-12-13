@@ -2,6 +2,7 @@
 Client module for Apptuit APIs
 """
 
+from os import environ
 from collections import defaultdict
 import json
 from string import ascii_letters, digits
@@ -74,7 +75,7 @@ class Apptuit(object):
     Apptuit is the client object, encapsulating the functionalities provided by Apptuit APIs
     """
 
-    def __init__(self, token, api_endpoint="https://api.apptuit.ai/", debug=False):
+    def __init__(self, token=None, api_endpoint="https://api.apptuit.ai/", debug=False):
         """
         Creates an apptuit client object
         Params:
@@ -83,13 +84,19 @@ class Apptuit(object):
             port: Port on which the service is running
 
         """
-        if not token:
-            raise ValueError("Invalid token")
         self.token = token
+        if self.token == "" or self.token is None:
+            self.token=self._get_token_from_environment()
         self.endpoint = api_endpoint
         if self.endpoint[-1] == '/':
             self.endpoint = self.endpoint[:-1]
         self.debug = debug
+
+    def _get_token_from_environment(self):
+        try:
+            return environ["APPTUIT_API_TOKEN"]
+        except KeyError as e:
+            raise ValueError("Invalid Token, 'APPTUIT_API_TOKEN' is not available in environment variable.")
 
     def send(self, datapoints):
         """
