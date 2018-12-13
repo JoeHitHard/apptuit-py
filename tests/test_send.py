@@ -84,18 +84,6 @@ def test_invalid_chars_in_tag_keys():
     with assert_raises(ValueError) as ex:
         DataPoint(metric_name, tags, ts, random.random())
 
-def test_no_tag():
-    """
-    Test for no tag keys
-    """
-    metric_name = "node.load_avg.1m"
-    ts = int(time.time())
-    with assert_raises(ValueError) as ex:
-        DataPoint(metric_name, None, ts, random.random())
-    with assert_raises(ValueError) as ex:
-        DataPoint(metric_name, {}, ts, random.random())
-
-
 def test_invalid_chars_in_tag_values():
     """
     Test for invalid character in tag values

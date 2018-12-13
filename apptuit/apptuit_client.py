@@ -24,17 +24,6 @@ INVALID_CHARSET = frozenset(map(chr, range(128))) - VALID_CHARSET
 def _contains_valid_chars(string):
     return INVALID_CHARSET.isdisjoint(string)
 
-def _create_payload(datapoints):
-    data = []
-    for dp in datapoints:
-        row = {}
-        row["metric"] = dp.metric
-        row["timestamp"] = dp.timestamp
-        row["value"] = dp.value
-        row["tags"] = dp.tags
-        data.append(row)
-    return data
-
 def _generate_query_string(query_string, start, end):
     ret = "?start=" + str(start)
     if end:
@@ -70,13 +59,22 @@ def _parse_response(resp, start, end=None):
             qresult[output_id].series.append(series)
     return qresult
 
-def _get_token_from_environment():
-    token = os.environ.get(APPTUIT_API_TOKEN)
+def _get_token_from_environment(token_key=APPTUIT_API_TOKEN):
+    token = os.environ.get(token_key)
     if not token:
         raise ValueError("Invalid Token, 'APPTUIT_API_TOKEN' "
                          "is not available in environment variable.")
     return token
 
+def _get_tags_from_environment(tags_key=APPTUIT_PY_TAGS):
+    try:
+        tags_str = os.environ.get(tags_key)
+        tags = json.loads(tags_str)
+    except ValueError:
+        tags = {}
+    except TypeError:
+        tags = {}
+    return tags
 
 class Apptuit(object):
     """
@@ -99,6 +97,23 @@ class Apptuit(object):
         if self.endpoint[-1] == '/':
             self.endpoint = self.endpoint[:-1]
         self.debug = debug
+        self.environ_tags = _get_tags_from_environment()
+
+    def _create_payload(self,datapoints):
+        data = []
+        for dp in datapoints:
+            tags = self.environ_tags.copy()
+            tags.update(dp.tags)
+            if not tags:
+                raise ValueError("Invalid Tags: Minimum one tag is requried for "
+                                 + dp.metric)
+            row = {}
+            row["metric"] = dp.metric
+            row["timestamp"] = dp.timestamp
+            row["value"] = dp.value
+            row["tags"] = tags
+            data.append(row)
+        return data
 
     def send(self, datapoints):
         """
@@ -108,7 +123,7 @@ class Apptuit(object):
         It raises an ApptuitException in case the backend API responds with an error
         """
         url = self.endpoint + "/api/put?sync&sync=60000"
-        data = _create_payload(datapoints)
+        data = self._create_payload(datapoints)
         body = json.dumps(data)
         body = zlib.compress(body.encode("utf-8"))
         headers = {}
@@ -313,19 +328,6 @@ class DataPoint(object):
         self.timestamp = timestamp
         self.value = value
 
-    def _get_tags_from_environment(self):
-        try:
-            tags_str = os.environ.get(APPTUIT_PY_TAGS)
-            tags = json.loads(tags_str)
-            return tags
-        except ValueError:
-            raise ValueError("Ivalid tags: Metric: "
-                             + self.metric +
-                             tags_str)
-        except TypeError:
-            raise ValueError("Ivalid tags: Metric: "
-                             + self.metric)
-
     @property
     def metric(self):
         return self._metric
@@ -343,8 +345,6 @@ class DataPoint(object):
 
     @tags.setter
     def tags(self, tags):
-        if not tags:
-            tags = self._get_tags_from_environment()
         if not isinstance(tags, dict):
             raise ValueError("Expected a value of type dict for tags")
         for tagk, tagv in tags.items():
