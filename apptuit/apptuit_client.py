@@ -72,6 +72,14 @@ def _parse_response(resp, start, end=None):
             qresult[output_id].series.append(series)
     return qresult
 
+
+def _get_token_from_environment(self):
+    try:
+        return environ[APPTUIT_API_TOKEN]
+    except KeyError as e:
+        raise ValueError("Invalid Token, 'APPTUIT_API_TOKEN' is not available in environment variable.")
+
+
 class Apptuit(object):
     """
     Apptuit is the client object, encapsulating the functionalities provided by Apptuit APIs
@@ -93,12 +101,6 @@ class Apptuit(object):
         if self.endpoint[-1] == '/':
             self.endpoint = self.endpoint[:-1]
         self.debug = debug
-
-    def _get_token_from_environment(self):
-        try:
-            return environ[APPTUIT_API_TOKEN]
-        except KeyError as e:
-            raise ValueError("Invalid Token, 'APPTUIT_API_TOKEN' is not available in environment variable.")
 
     def send(self, datapoints):
         """
@@ -223,7 +225,6 @@ class TimeSeries(object):
                                  % (tagv))
         self._tags = tags
 
-
     def __repr__(self):
         repr_str = '%s{' % self.metric
         for tagk in sorted(self.tags):
@@ -316,10 +317,10 @@ class DataPoint(object):
 
     def _get_tags_from_environment(self):
         try:
-            tags_str=environ[APPTUIT_PY_TAGS]
-            tags=json.loads(tags_str)
+            tags_str = environ[APPTUIT_PY_TAGS]
+            tags = json.loads(tags_str)
             return tags
-        except KeyError as e:
+        except KeyError:
             raise ValueError("Ivalid tags: Metric: " + self.metric + " need minimum one tag, and 'APPTUIT_PY_TAGS' is not available in environment variable")
     @property
     def metric(self):
@@ -339,7 +340,7 @@ class DataPoint(object):
     @tags.setter
     def tags(self, tags):
         if tags is None or tags == {}:
-            tags=self._get_tags_from_environment()
+            tags = self._get_tags_from_environment()
         if not isinstance(tags, dict):
             raise ValueError("Expected a value of type dict for tags")
         for tagk, tagv in tags.items():
