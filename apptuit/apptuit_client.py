@@ -66,7 +66,7 @@ def _get_token_from_environment():
                          "is not available in environment variable.")
     return token
 
-def environ_tag_str_to_dict(tags_str):
+def _environ_tag_str_to_dict(tags_str):
     if not tags_str:
         tags = {}
         return tags
@@ -78,15 +78,15 @@ def environ_tag_str_to_dict(tags_str):
             tags[key.strip(" ")] = val.strip(" ")
         except ValueError:
             continue
-    validate_tags(tags)
+    _validate_tags(tags)
     return tags
 
 def _get_tags_from_environment():
     tags_str = os.environ.get(APPTUIT_PY_TAGS)
-    tags = environ_tag_str_to_dict(tags_str)
+    tags = _environ_tag_str_to_dict(tags_str)
     return tags
 
-def validate_tags(tags):
+def _validate_tags(tags):
     for tagk, tagv in tags.items():
         if not _contains_valid_chars(tagk):
             raise ValueError("Tag key %s contains an invalid character, "
@@ -127,7 +127,7 @@ class Apptuit(object):
             elif dp.tags:
                 tags = dp.tags
             else:
-                tags=self._environ_tags.copy()
+                tags = self._environ_tags.copy()
             if not tags:
                 raise ValueError("Missing tags for:'"
                                  + dp.metric +
@@ -252,7 +252,7 @@ class TimeSeries(object):
     def tags(self, tags):
         if not isinstance(tags, dict):
             raise ValueError("tags parameter is expected to be a dict type")
-        validate_tags(tags)
+        _validate_tags(tags)
         self._tags = tags
 
     def __repr__(self):
@@ -364,7 +364,7 @@ class DataPoint(object):
     def tags(self, tags):
         if not isinstance(tags, dict):
             raise ValueError("Expected a value of type dict for tags")
-        validate_tags(tags)
+        _validate_tags(tags)
         self._tags = tags
 
     @property
