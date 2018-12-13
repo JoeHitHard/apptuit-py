@@ -59,22 +59,38 @@ def _parse_response(resp, start, end=None):
             qresult[output_id].series.append(series)
     return qresult
 
-def _get_token_from_environment(token_key=APPTUIT_API_TOKEN):
-    token = os.environ.get(token_key)
+def _get_token_from_environment():
+    token = os.environ.get(APPTUIT_API_TOKEN)
     if not token:
         raise ValueError("Invalid Token, 'APPTUIT_API_TOKEN' "
                          "is not available in environment variable.")
     return token
 
-def _get_tags_from_environment(tags_key=APPTUIT_PY_TAGS):
-    try:
-        tags_str = os.environ.get(tags_key)
-        tags = json.loads(tags_str)
-    except ValueError:
-        tags = {}
-    except TypeError:
-        tags = {}
+def environ_tag_str_to_dict(tags_str):
+    tags = {}
+    tags_split = tags_str.split(',')
+    for tag in tags_split:
+        try:
+            key, val = tag.split(":")
+            tags[key.strip(" ")] = val.strip(" ")
+        except ValueError:
+            continue
+    validate_tags(tags)
     return tags
+
+def _get_tags_from_environment():
+    tags_str = os.environ.get(APPTUIT_PY_TAGS, default="")
+    tags = environ_tag_str_to_dict(tags_str)
+    return tags
+
+def validate_tags(tags):
+    for tagk, tagv in tags.items():
+        if not _contains_valid_chars(tagk):
+            raise ValueError("Tag key %s contains an invalid character, "
+                             "allowed characters are a-z, A-Z, 0-9, -, _, ., and /" % tagk)
+        if not _contains_valid_chars(str(tagv)):
+            raise ValueError("Tag value %s contains an invalid character, "
+                             "allowed characters are a-z, A-Z, 0-9, -, _, ., and /" % tagv)
 
 class Apptuit(object):
     """
@@ -97,16 +113,22 @@ class Apptuit(object):
         if self.endpoint[-1] == '/':
             self.endpoint = self.endpoint[:-1]
         self.debug = debug
-        self.environ_tags = _get_tags_from_environment()
+        self._environ_tags = _get_tags_from_environment()
 
-    def _create_payload(self,datapoints):
+    def _create_payload(self, datapoints):
         data = []
         for dp in datapoints:
-            tags = self.environ_tags.copy()
-            tags.update(dp.tags)
+            if dp.tags and self._environ_tags:
+                tags = self._environ_tags.copy()
+                tags.update(dp.tags)
+            elif dp.tags:
+                tags = dp.tags
+            else:
+                tags=self._environ_tags.copy()
             if not tags:
-                raise ValueError("Invalid Tags: Minimum one tag is requried for "
-                                 + dp.metric)
+                raise ValueError("Missing tags for:'"
+                                 + dp.metric +
+                                 "'. Add tags to DataPoint or set an Environment Variable.")
             row = {}
             row["metric"] = dp.metric
             row["timestamp"] = dp.timestamp
@@ -227,15 +249,7 @@ class TimeSeries(object):
     def tags(self, tags):
         if not isinstance(tags, dict):
             raise ValueError("tags parameter is expected to be a dict type")
-        for tagk, tagv in tags.items():
-            if not _contains_valid_chars(tagk):
-                raise ValueError("tag key %s contains a character which is not allowed, "
-                                 "only characters [a-z], [A-Z], [0-9] and [-_./] are allowed"
-                                 % (tagk))
-            if not _contains_valid_chars(str(tagv)):
-                raise ValueError("tag value %s contains a character which is not allowed, "
-                                 "only characters [a-z], [A-Z], [0-9] and [-_./] are allowed"
-                                 % (tagv))
+        validate_tags(tags)
         self._tags = tags
 
     def __repr__(self):
@@ -347,13 +361,7 @@ class DataPoint(object):
     def tags(self, tags):
         if not isinstance(tags, dict):
             raise ValueError("Expected a value of type dict for tags")
-        for tagk, tagv in tags.items():
-            if not _contains_valid_chars(tagk):
-                raise ValueError("Tag key %s contains an invalid character, "
-                                 "allowed characters are a-z, A-Z, 0-9, -, _, ., and /" % tagk)
-            if not _contains_valid_chars(str(tagv)):
-                raise ValueError("Tag value %s contains an invalid character, "
-                                 "allowed characters are a-z, A-Z, 0-9, -, _, ., and /" % tagv)
+        validate_tags(tags)
         self._tags = tags
 
     @property

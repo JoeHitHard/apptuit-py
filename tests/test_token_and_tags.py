@@ -50,10 +50,10 @@ def test_tags_positive():
         Test that tags work normally
     """
     mock_environ = patch.dict(os.environ, {APPTUIT_API_TOKEN: "environ_token",
-                                           APPTUIT_PY_TAGS: '{"tagk1":22,"tagk2":"tagv2"}'})
+                                           APPTUIT_PY_TAGS: 'tagk1:22,tagk2:tagv2'})
     mock_environ.start()
     client = Apptuit()
-    assert_equals(client.environ_tags, {"tagk1": 22, "tagk2": "tagv2"})
+    assert_equals(client._environ_tags, {"tagk1": "22", "tagk2": "tagv2"})
     mock_environ.stop()
 
 def test_tags_negative():
@@ -63,11 +63,16 @@ def test_tags_negative():
     mock_environ = patch.dict(os.environ, {APPTUIT_API_TOKEN: "environ_token"})
     mock_environ.start()
     client = Apptuit()
-    assert_equals({}, client.environ_tags)
+    assert_equals({}, client._environ_tags)
     mock_environ.stop()
     mock_environ = patch.dict(os.environ, {APPTUIT_API_TOKEN: "environ_token", APPTUIT_PY_TAGS: "{InvalidTags"})
     mock_environ.start()
-    assert_equals({}, client.environ_tags)
+    assert_equals({}, client._environ_tags)
+    mock_environ.stop()
+    mock_environ = patch.dict(os.environ, {APPTUIT_API_TOKEN: "environ_token", APPTUIT_PY_TAGS: '"tagk1":"tagv1"'})
+    mock_environ.start()
+    with assert_raises(ValueError):
+        Apptuit()
     mock_environ.stop()
 
 def test_datapoint_tags_take_priority():
@@ -75,14 +80,14 @@ def test_datapoint_tags_take_priority():
         Test that datapoint tags take priority
     """
     mock_environ = patch.dict(os.environ, {APPTUIT_API_TOKEN: "environ_token",
-                                           APPTUIT_PY_TAGS: '{"host": "host1", "ip": "1.1.1.1"}'})
+                                           APPTUIT_PY_TAGS: 'host: host1, ip: 1.1.1.1'})
     mock_environ.start()
     client = Apptuit()
     test_val = 123
     dp1 = DataPoint("test_metric", {"host": "host2", "ip": "2.2.2.2", "test": 1}, test_val, test_val)
     dp2 = DataPoint("test_metric", {"test": 2}, test_val, test_val)
     payload = client._create_payload([dp1, dp2])
-    assert_equals(len(payload),2)
+    assert_equals(len(payload), 2)
     assert_equals(payload[0]["tags"], {"host": "host2", "ip": "2.2.2.2", "test": 1})
     assert_equals(payload[1]["tags"], {"host": "host1", "ip": "1.1.1.1", "test": 2})
     mock_environ.stop()
@@ -92,7 +97,7 @@ def test_reporter_tags_take_priority():
         Test that reporter tags take priority
     """
     mock_environ = patch.dict(os.environ, {APPTUIT_API_TOKEN: "environ_token",
-                                           APPTUIT_PY_TAGS: '{"host": "environ", "ip": "1.1.1.1"}'})
+                                           APPTUIT_PY_TAGS: 'host: environ, ip: 1.1.1.1'})
     mock_environ.start()
     registry = MetricsRegistry()
     counter = registry.counter("counter")
