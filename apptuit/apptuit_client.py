@@ -149,6 +149,8 @@ class Apptuit(object):
             datapoints: A list of DataPoint objects
         It raises an ApptuitException in case the backend API responds with an error
         """
+        if not datapoints:
+            return
         url = self.endpoint + "/api/put?sync&sync=60000"
         data = self._create_payload(datapoints)
         body = json.dumps(data)
