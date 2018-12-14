@@ -112,7 +112,7 @@ class Apptuit(object):
                 raise ValueError("Missing Apptuit API token, "
                                  "either pass it as a parameter or "
                                  "set as value of the environment variable '"
-                                 + APPTUIT_API_TOKEN)
+                                 + APPTUIT_API_TOKEN + "'.")
         self.endpoint = api_endpoint
         if self.endpoint[-1] == '/':
             self.endpoint = self.endpoint[:-1]
