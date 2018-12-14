@@ -25,7 +25,7 @@ Supported Python versions: 2.7.x, 3.4, 3.5, 3.6, 3.7
    * [Sending Data using `send()` API](#sending-data-using-send-api)
  - [Querying for Data](#querying-for-data)
  
-###Configuration
+### Configuration
 
 Apptuit package supports 2 environmental variables `APPTUIT_API_TOKEN` 
 and `APPTUIT_PY_TAGS`:
@@ -36,11 +36,11 @@ then that token will take priority.
 * `APPTUIT_PY_TAGS`: If this environmental variable is set then these tags will 
 act as global tags, and these tags will be sent in all send api calls. The tags
 have to be specified in key value pair as follows:
-```
-APPTUIT_PY_TAGS: tag_key1: tag_val1, tag_key2: tag_val2 ,..., tag_keyN: tag_valN
-```
-If tag key in environmental variable matches tag key to `DataPoint` then 
-`DataPoint` tags take priority.
+    ```
+    APPTUIT_PY_TAGS: tag_key1: tag_val1, tag_key2: tag_val2 ,..., tag_keyN: tag_valN
+    ```
+    If tag key in environmental variable matches tag key to `DataPoint` then 
+    `DataPoint` tags take priority.
 
 ### Sending data
 
