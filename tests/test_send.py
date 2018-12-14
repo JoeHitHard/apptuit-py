@@ -83,6 +83,10 @@ def test_invalid_chars_in_tag_keys():
     ts = int(time.time())
     with assert_raises(ValueError) as ex:
         DataPoint(metric_name, tags, ts, random.random())
+    with assert_raises(ValueError) as ex:
+        DataPoint(metric_name, "error", ts, random.random())
+    dp = DataPoint(metric_name, None, ts, random.random())
+    assert_equals(dp.tags,None)
 
 def test_invalid_chars_in_tag_values():
     """
