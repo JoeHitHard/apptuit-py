@@ -15,41 +15,67 @@ try:
 except ImportError:
     from mock import Mock, patch
 
+def _tester_test_token_positive(token_environ, token_argument, token_test):
+    """
+        to test  test_token_positive
+    """
+    mock_environ = patch.dict(os.environ, {APPTUIT_API_TOKEN: token_environ})
+    mock_environ.start()
+    client = Apptuit(token=token_argument)
+    assert_equals(client.token, token_test)
+    mock_environ.stop()
+
 def test_token_positive():
     """
         Test that token is working normally
     """
-    mock_environ = patch.dict(os.environ, {APPTUIT_API_TOKEN: "environ_token"})
+    _tester_test_token_positive("environ_token","","environ_token")
+    _tester_test_token_positive("environ_token", None, "environ_token")
+    _tester_test_token_positive("environ_token", "argument_token", "argument_token")
+
+def _get_tags_from_environ_negative(test_environ_str):
+    """
+        to test test_get_tags_from_environ
+    """
+    mock_environ = patch.dict(os.environ, {
+        APPTUIT_PY_TAGS: test_environ_str})
     mock_environ.start()
-    client = Apptuit()
-    assert_equals(client.token, "environ_token")
-    client = Apptuit(token="")
-    assert_equals(client.token, "environ_token")
-    client = Apptuit(token=None)
-    assert_equals(client.token, "environ_token")
-    client = Apptuit(token="argument_token")
-    assert_equals(client.token, "argument_token")
+    with assert_raises(ValueError):
+        _get_tags_from_environment()
+    mock_environ.stop()
+
+def _get_tags_from_environ_positive(test_tags_str,test_tags_dict):
+    """
+        to test test_get_tags_from_environ
+    """
+    mock_environ = patch.dict(os.environ, {
+        APPTUIT_PY_TAGS: test_tags_str})
+    mock_environ.start()
+    assert_equals(_get_tags_from_environment(), test_tags_dict)
     mock_environ.stop()
 
 def test_get_tags_from_environ():
     """
         Test that _get_tags_from_environment is working
     """
-    mock_environ = patch.dict(os.environ, {
-        APPTUIT_PY_TAGS: 'tagk1: 22, tagk2: tagv2'})
-    mock_environ.start()
-    assert_equals(_get_tags_from_environment(), {"tagk1": "22", "tagk2": "tagv2"})
-    mock_environ.stop()
-    mock_environ = patch.dict(os.environ, {
-        APPTUIT_PY_TAGS: '"tagk1": "22"'})
-    mock_environ.start()
-    with assert_raises(ValueError):
-        _get_tags_from_environment()
-    mock_environ.stop()
-    mock_environ = patch.dict(os.environ, {})
-    mock_environ.start()
-    assert_equals(_get_tags_from_environment(), {})
-    mock_environ.stop()
+    _get_tags_from_environ_positive(" ", {})
+    _get_tags_from_environ_positive('tagk1: 22, tagk2: tagv2',
+                                                   {"tagk1": "22", "tagk2": "tagv2"})
+    _get_tags_from_environ_positive('tagk1: 22, , tagk2: tagv2',
+                                                   {"tagk1": "22", "tagk2": "tagv2"})
+    _get_tags_from_environ_positive('  tagk1 : 22,,tagk2  : tagv2  ',
+                                                   {"tagk1": "22", "tagk2": "tagv2"})
+    _get_tags_from_environ_positive(', , , , tagk1: 22, tagk2: tagv2, , ,  , ,',
+                                                   {"tagk1": "22", "tagk2": "tagv2"})
+    _get_tags_from_environ_positive(',tagk1: 22, tagk2: tagv2,',
+                                                   {"tagk1": "22", "tagk2": "tagv2"})
+    _get_tags_from_environ_negative('"tagk1":tagv1')
+    _get_tags_from_environ_negative('tagk1:tagv11:tagv12')
+    _get_tags_from_environ_negative('tag')
+    _get_tags_from_environ_negative('  tagk1 : 22,error,tagk2  : tagv2  ')
+    _get_tags_from_environ_negative('  tagk1 : 22,tagk1:tagv11:tagv12,tagk2  : tagv2  ')
+
+
 
 def test_token_negative():
     """

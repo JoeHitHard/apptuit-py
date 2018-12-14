@@ -68,13 +68,16 @@ def _get_tags_from_environment():
     tags_split = tags_str.split(',')
     for tag in tags_split:
         try:
+            tag = tag.strip()
+            if not tag:
+                continue
             key, val = tag.split(":")
             tags[key.strip()] = val.strip()
         except ValueError:
             raise ValueError("Invalid format of "
                              + APPTUIT_PY_TAGS +
-                             ", failed to parse tag key-value pair "
-                             + tag + " format should be like"
+                             ", failed to parse tag key-value pair '"
+                             + tag + "' format should be like"
                              "'tag_key1:tag_val1,tag_key2:tag_val2,...,tag_keyN:tag_valN'")
     _validate_tags(tags)
     return tags
