@@ -59,23 +59,19 @@ def _parse_response(resp, start, end=None):
             qresult[output_id].series.append(series)
     return qresult
 
-def _get_token_from_environment():
-    token = os.environ.get(APPTUIT_API_TOKEN)
-    return token
-
 def _get_tags_from_environment():
     tags_str = os.environ.get(APPTUIT_PY_TAGS)
     if not tags_str:
-        tags = {}
-        return tags
+        return {}
     tags = {}
     tags_split = tags_str.split(',')
     for tag in tags_split:
         try:
             key, val = tag.split(":")
-            tags[key.strip(" ")] = val.strip(" ")
+            tags[key.strip()] = val.strip()
         except ValueError:
-            raise ValueError("Invalid format of tags in Environment variable '"
+            raise ValueError("Invalid format of tags: '" + tag +
+                             " in Environment variable '"
                              + APPTUIT_PY_TAGS +
                              "' should be like "
                              "'tag_key1:tag_val1,tag_key2:tag_val2,...,tag_keyN:tag_valN'")
@@ -107,11 +103,12 @@ class Apptuit(object):
         """
         self.token = token
         if not self.token:
-            self.token = _get_token_from_environment()
+            self.token = os.environ.get(APPTUIT_API_TOKEN)
             if not self.token:
-                raise ValueError("Missing Token, '" + APPTUIT_API_TOKEN + "'"
-                                 "is not available in environment variable or"
-                                 "should pass token as parameter to Apptuit")
+                raise ValueError("Missing Apptuit API token, "
+                                 "either pass it as a parameter or "
+                                 "set as value of the environment variable '"
+                                 + APPTUIT_API_TOKEN)
         self.endpoint = api_endpoint
         if self.endpoint[-1] == '/':
             self.endpoint = self.endpoint[:-1]
@@ -127,13 +124,15 @@ class Apptuit(object):
             elif dp.tags:
                 tags = dp.tags
             else:
-                tags = self._environ_tags.copy()
+                tags = self._environ_tags
             if not tags:
-                raise ValueError("Missing tags for:'"
+                raise ValueError("Missing tags for the metric "
                                  + dp.metric +
-                                 "'. Pass parameter tags to DataPoint or set an Environment "
-                                 "Variable '"
-                                 + APPTUIT_PY_TAGS + "'.")
+                                 ". Either pass it as value of the tags"
+                                 " parameter to DataPoint or"
+                                 " set environment variable '"
+                                 + APPTUIT_PY_TAGS +
+                                 "' for global tags")
             row = {}
             row["metric"] = dp.metric
             row["timestamp"] = dp.timestamp

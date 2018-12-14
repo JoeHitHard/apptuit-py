@@ -67,7 +67,8 @@ def test_tags_negative():
     mock_environ.stop()
     mock_environ = patch.dict(os.environ, {APPTUIT_API_TOKEN: "environ_token", APPTUIT_PY_TAGS: "{InvalidTags"})
     mock_environ.start()
-    assert_equals({}, client._environ_tags)
+    with assert_raises(ValueError):
+        Apptuit()
     mock_environ.stop()
     mock_environ = patch.dict(os.environ, {APPTUIT_API_TOKEN: "environ_token", APPTUIT_PY_TAGS: '"tagk1":"tagv1"'})
     mock_environ.start()
@@ -136,4 +137,20 @@ def test_reporter_tags_take_priority():
     payload = reporter.client._create_payload(reporter._collect_data_points(reporter.registry))
     assert_equals(len(payload), 1)
     assert_equals(payload[0]["tags"], {"host": "environ", "ip": "1.1.1.1"})
+    mock_environ.stop()
+
+def test_tags_of_metric_take_priority():
+    """
+        Test that metric tags take priority
+    """
+    mock_environ = patch.dict(os.environ, {APPTUIT_API_TOKEN: "environ_token",
+                                           APPTUIT_PY_TAGS: 'host: environ, ip: 1.1.1.1'})
+    mock_environ.start()
+    registry = MetricsRegistry()
+    counter = registry.counter('counter {"host": "metric", "ip": "3.3.3.3"}')
+    counter.inc(1)
+    reporter = ApptuitReporter(registry=registry, tags={"host": "reporter", "ip": "2.2.2.2"})
+    payload = reporter.client._create_payload(reporter._collect_data_points(reporter.registry))
+    assert_equals(len(payload), 1)
+    assert_equals(payload[0]["tags"], {"host": "metric", "ip": "3.3.3.3"})
     mock_environ.stop()
