@@ -31,17 +31,37 @@ def test_token_positive():
     assert_equals(client.token, "argument_token")
     mock_environ.stop()
 
+def test_get_tags_from_environ():
+    """
+        Test that _get_tags_from_environment is working
+    """
+    mock_environ = patch.dict(os.environ, {
+        APPTUIT_PY_TAGS: 'tagk1: 22, tagk2: tagv2'})
+    mock_environ.start()
+    assert_equals(_get_tags_from_environment(), {"tagk1": "22", "tagk2": "tagv2"})
+    mock_environ.stop()
+    mock_environ = patch.dict(os.environ, {
+        APPTUIT_PY_TAGS: '"tagk1": "22"'})
+    mock_environ.start()
+    with assert_raises(ValueError):
+        _get_tags_from_environment()
+    mock_environ.stop()
+    mock_environ = patch.dict(os.environ, {})
+    mock_environ.start()
+    assert_equals(_get_tags_from_environment(), {})
+    mock_environ.stop()
+
 def test_token_negative():
     """
         Test that invalid token raises error
     """
     mock_environ = patch.dict(os.environ, {})
     mock_environ.start()
-    with assert_raises(ValueError) as m:
+    with assert_raises(ValueError):
         Apptuit()
-    with assert_raises(ValueError) as m:
+    with assert_raises(ValueError):
         Apptuit(token="")
-    with assert_raises(ValueError) as m:
+    with assert_raises(ValueError):
         Apptuit(token=None)
     mock_environ.stop()
 
@@ -50,7 +70,7 @@ def test_tags_positive():
         Test that tags work normally
     """
     mock_environ = patch.dict(os.environ, {APPTUIT_API_TOKEN: "environ_token",
-                                           APPTUIT_PY_TAGS: 'tagk1:22,tagk2:tagv2'})
+                                           APPTUIT_PY_TAGS: 'tagk1: 22, tagk2: tagv2'})
     mock_environ.start()
     client = Apptuit()
     assert_equals(client._environ_tags, {"tagk1": "22", "tagk2": "tagv2"})

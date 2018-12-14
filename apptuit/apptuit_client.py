@@ -64,16 +64,17 @@ def _get_tags_from_environment():
     if not tags_str:
         return {}
     tags = {}
+    tags_str = tags_str.strip(", ")
     tags_split = tags_str.split(',')
     for tag in tags_split:
         try:
             key, val = tag.split(":")
             tags[key.strip()] = val.strip()
         except ValueError:
-            raise ValueError("Invalid format of tags: '" + tag +
-                             " in Environment variable '"
+            raise ValueError("Invalid format of "
                              + APPTUIT_PY_TAGS +
-                             "' should be like "
+                             ", failed to parse tag key-value pair "
+                             + tag + " format should be like"
                              "'tag_key1:tag_val1,tag_key2:tag_val2,...,tag_keyN:tag_valN'")
     _validate_tags(tags)
     return tags
@@ -365,6 +366,9 @@ class DataPoint(object):
 
     @tags.setter
     def tags(self, tags):
+        if tags is None:
+            self._tags = None
+            return
         if not isinstance(tags, dict):
             raise ValueError("Expected a value of type dict for tags")
         _validate_tags(tags)
