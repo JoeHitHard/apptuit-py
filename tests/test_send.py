@@ -19,6 +19,10 @@ def test_send_positive(mock_post):
     metric_name = "node.load_avg.1m"
     tags = {"host": "localhost", "region": "us-east-1", "service": "web-server"}
     dps = []
+    try:
+        client.send(dps)
+    except Exception:
+        ok_(False)
     points_sent = 0
     while True:
         ts = int(time.time())

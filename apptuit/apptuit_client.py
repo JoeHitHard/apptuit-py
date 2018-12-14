@@ -370,7 +370,8 @@ class DataPoint(object):
     @tags.setter
     def tags(self, tags):
         if tags is None:
-            pass
+            self._tags = tags
+            return
         else:
             if not isinstance(tags, dict):
                 raise ValueError("Expected a value of type dict for tags")
