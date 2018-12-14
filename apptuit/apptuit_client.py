@@ -131,7 +131,8 @@ class Apptuit(object):
             if not tags:
                 raise ValueError("Missing tags for:'"
                                  + dp.metric +
-                                 "'. Pass parameter tags to DataPoint or set an Environment Variable '"
+                                 "'. Pass parameter tags to DataPoint or set an Environment "
+                                 "Variable '"
                                  + APPTUIT_PY_TAGS + "'.")
             row = {}
             row["metric"] = dp.metric
