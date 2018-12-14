@@ -19,28 +19,19 @@ def test_send_positive(mock_post):
     metric_name = "node.load_avg.1m"
     tags = {"host": "localhost", "region": "us-east-1", "service": "web-server"}
     dps = []
-    try:
-        client.send(dps)
-    except Exception:
-        ok_(False)
+    client.send(dps)
     points_sent = 0
     while True:
         ts = int(time.time())
         dps.append(DataPoint(metric_name, tags, ts, random.random()))
         if len(dps) == 100:
-            try:
-                client.send(dps)
-            except ApptuitException:
-                ok_(False)
+            client.send(dps)
             dps = []
             points_sent += 100
         if points_sent > 500:
             break
     if dps:
-        try:
-            client.send(dps)
-        except ApptuitException:
-            ok_(False)
+        client.send(dps)
 
 @patch('apptuit.apptuit_client.requests.post')
 def test_send_server_error(mock_post):
