@@ -5,8 +5,8 @@ Client module for Apptuit APIs
 import os
 from collections import defaultdict
 import json
-from apptuit.utils import _contains_valid_chars, _get_tags_from_environment, _validate_tags, \
-    APPTUIT_PY_TAGS, APPTUIT_PY_TOKEN
+from apptuit.utils import _contains_valid_chars, _get_tags_from_environment, _validate_tags
+from apptuit import APPTUIT_PY_TOKEN, APPTUIT_PY_TAGS
 
 try:
     from urllib import quote

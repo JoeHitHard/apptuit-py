@@ -6,11 +6,9 @@ import random
 import time
 from nose.tools import assert_raises, assert_equals, assert_greater_equal, assert_true
 from requests.exceptions import HTTPError
-from apptuit import ApptuitException
+from apptuit import ApptuitException, APPTUIT_PY_TOKEN, APPTUIT_PY_TAGS
 from apptuit.pyformance.apptuit_reporter import ApptuitReporter
 from pyformance import MetricsRegistry
-
-from apptuit.utils import APPTUIT_PY_TOKEN, APPTUIT_PY_TAGS
 
 try:
     from unittest.mock import Mock, patch

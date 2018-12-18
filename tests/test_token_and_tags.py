@@ -8,8 +8,7 @@ import os
 from nose.tools import assert_equals, assert_raises
 from pyformance import MetricsRegistry
 
-from apptuit.utils import APPTUIT_PY_TOKEN, APPTUIT_PY_TAGS
-from apptuit import apptuit_client, Apptuit, DataPoint
+from apptuit import apptuit_client, Apptuit, DataPoint, APPTUIT_PY_TOKEN, APPTUIT_PY_TAGS
 from apptuit.pyformance import ApptuitReporter
 
 try:

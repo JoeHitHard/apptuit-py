@@ -1,8 +1,8 @@
 import os
 from string import ascii_letters, digits
 
-APPTUIT_PY_TOKEN = "APPTUIT_PY_TOKEN"
-APPTUIT_PY_TAGS = "APPTUIT_PY_TAGS"
+from apptuit import APPTUIT_PY_TAGS
+
 VALID_CHARSET = set(ascii_letters + digits + "-_./")
 INVALID_CHARSET = frozenset(map(chr, range(128))) - VALID_CHARSET
 

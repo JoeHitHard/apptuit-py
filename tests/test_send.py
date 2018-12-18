@@ -2,15 +2,13 @@ import os
 import random
 import time
 
-from apptuit.utils import APPTUIT_PY_TOKEN, APPTUIT_PY_TAGS
-
 try:
     from unittest.mock import Mock, patch
 except ImportError:
     from mock import Mock, patch
 
 from nose.tools import assert_raises, ok_, assert_is_not_none, assert_equals
-from apptuit import Apptuit, DataPoint, ApptuitException
+from apptuit import Apptuit, DataPoint, ApptuitException, APPTUIT_PY_TOKEN, APPTUIT_PY_TAGS
 
 
 def test_client_object():
@@ -32,7 +30,7 @@ def test_client_object():
     mock_environ.stop()
 
     mock_environ = patch.dict(os.environ, {APPTUIT_PY_TOKEN: "environ_token",
-                                           APPTUIT_PY_TAGS: 'tagk1: 22, tagk2: tagv2'})
+                                           APPTUIT_PY_TAGS: 'tk1: tv1, tk2: tv2'})
     mock_environ.start()
     client = Apptuit(global_tags={"tagk1": "22", "tagk2": "tagv2"})
     assert_equals(client._global_tags, {"tagk1": "22", "tagk2": "tagv2"})
