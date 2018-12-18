@@ -299,10 +299,13 @@ def test_valid_prefix():
                                prefix="pre-",
                                token=token,
                                tags=tags)
-    counter1 = registry.counter('counter1')
+    # this is to remove the meta-metrics created inside reporter
+    reporter.registry = MetricsRegistry()
+    counter1 = reporter.registry.counter('counter1')
     counter1.inc()
     dps = reporter._collect_data_points(reporter.registry)
-    assert_equals(dps[0].metric, "pre-api_call_time.count.count")
+    dps = sorted(dps, key=lambda x: x.metric)
+    assert_equals(dps[0].metric, "pre-counter1")
 
 def test_none_prefix():
     """
@@ -316,10 +319,13 @@ def test_none_prefix():
                                prefix=None,
                                token=token,
                                tags=tags)
-    counter1 = registry.counter('counter1')
+    # this is to remove the meta-metrics created inside reporter
+    reporter.registry = MetricsRegistry()
+    counter1 = reporter.registry.counter('counter1')
     counter1.inc()
     dps = reporter._collect_data_points(reporter.registry)
-    assert_equals(dps[0].metric, "api_call_time.count.count")
+    dps = sorted(dps, key=lambda x: x.metric)
+    assert_equals(dps[0].metric, "counter1")
 
 @patch('apptuit.apptuit_client.requests.post')
 def test_meta_metrics_of_reporter(mock_post):
