@@ -4,7 +4,7 @@
 import os
 import random
 import time
-from nose.tools import assert_raises, assert_equals, assert_greater_equal, assert_true
+from nose.tools import assert_raises, assert_equals, assert_greater_equal, assert_true, assert_greater
 from requests.exceptions import HTTPError
 from apptuit import ApptuitException, APPTUIT_PY_TOKEN, APPTUIT_PY_TAGS
 from apptuit.pyformance.apptuit_reporter import ApptuitReporter
@@ -302,7 +302,7 @@ def test_valid_prefix():
     counter1 = registry.counter('counter1')
     counter1.inc()
     dps = reporter._collect_data_points(reporter.registry)
-    assert_equals(dps[0].metric, "pre-counter1.count")
+    assert_equals(dps[0].metric, "pre-api_call_time.count.count")
 
 def test_none_prefix():
     """
@@ -319,7 +319,7 @@ def test_none_prefix():
     counter1 = registry.counter('counter1')
     counter1.inc()
     dps = reporter._collect_data_points(reporter.registry)
-    assert_equals(dps[0].metric, "counter1.count")
+    assert_equals(dps[0].metric, "api_call_time.count.count")
 
 @patch('apptuit.apptuit_client.requests.post')
 def test_meta_metrics_of_reporter(mock_post):
@@ -349,3 +349,5 @@ def test_meta_metrics_of_reporter(mock_post):
     assert_equals(len(dps), 21)
     assert_equals(dps[10].metric, "api_call_time.count")
     assert_equals(dps[10].value, sleep_time)
+    assert_equals(dps[19].metric, "number_of_points_sent.count")
+    assert_greater(dps[19].value, 60)
