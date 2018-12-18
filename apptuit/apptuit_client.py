@@ -66,8 +66,10 @@ class Apptuit(object):
         Params:
             token: Token of the tenant to which we wish to connect
             api_endpoint: Apptuit API End point (including the protocol and port)
-            global_tags: Tags for all datapoints (should be a dict default: None)
-            ignore_environ_tags: A boolean value to include environmental varaiable or not (default : False)
+            global_tags: Tags for all datapoints (should be a dict),if you pass
+                    global_tags, environmental tags will be used,
+                    even if ignore_environ_tags is false.
+            ignore_environ_tags: A boolean value to include environmental variable or not
         """
         self.token = token
         if not self.token:
