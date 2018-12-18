@@ -5,6 +5,8 @@ from pyformance.reporters.reporter import Reporter
 from apptuit import Apptuit, DataPoint, timeseries
 from apptuit.utils import _get_tags_from_environment
 
+NUMBER_OF_POINTS_SENT = "number_of_points_sent"
+API_CALL_TIMER = "api_call_time"
 
 class ApptuitReporter(Reporter):
 
@@ -23,6 +25,8 @@ class ApptuitReporter(Reporter):
         self.prefix = prefix if prefix is not None else ""
         self.client = Apptuit(token, api_endpoint, ignore_environ_tags=True)
         self.__decoded_metrics_cache = {}
+        self.__meter_for_number_of_dps = self.registry.meter(NUMBER_OF_POINTS_SENT)
+        self.__timer_for_api_calls = self.registry.timer(API_CALL_TIMER)
 
     def report_now(self, registry=None, timestamp=None):
         """
@@ -33,7 +37,8 @@ class ApptuitReporter(Reporter):
         """
         dps = self._collect_data_points(registry or self.registry, timestamp)
         if dps:
-            self.client.send(dps)
+            with self.__timer_for_api_calls.time():
+                self.client.send(dps)
 
     def _get_tags(self, key):
         """
@@ -78,4 +83,5 @@ class ApptuitReporter(Reporter):
                                      tags=tags,
                                      timestamp=timestamp,
                                      value=metrics[key][value_key]))
+        self.__meter_for_number_of_dps.mark(len(dps))
         return dps
