@@ -354,6 +354,6 @@ def test_meta_metrics_of_reporter(mock_post):
     dps = sorted(dps, key=lambda x: x.metric)
     assert_equals(len(dps), 21)
     assert_equals(dps[10].metric, "api_call_time.count")
-    assert_equals(dps[10].value, sleep_time)
+    assert_greater(dps[10].value, sleep_time-1)
     assert_equals(dps[19].metric, "number_of_points_sent.count")
-    assert_greater(dps[19].value, 60)
+    assert_greater(dps[19].value, sleep_time-1)

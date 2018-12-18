@@ -27,6 +27,8 @@ class ApptuitReporter(Reporter):
         self.__decoded_metrics_cache = {}
         self.__meter_for_number_of_dps = self.registry.meter(NUMBER_OF_POINTS_SENT)
         self.__timer_for_api_calls = self.registry.timer(API_CALL_TIMER)
+        self.__meta_metrics_count = len(self.registry._get_timer_metrics(API_CALL_TIMER)) +\
+                                    len(self.registry._get_meter_metrics(NUMBER_OF_POINTS_SENT))
 
     def report_now(self, registry=None, timestamp=None):
         """
@@ -37,7 +39,7 @@ class ApptuitReporter(Reporter):
         """
         dps = self._collect_data_points(registry or self.registry, timestamp)
         if dps:
-            self.__meter_for_number_of_dps.mark(len(dps))
+            self.__meter_for_number_of_dps.mark(len(dps)-self.__meta_metrics_count)
             with self.__timer_for_api_calls.time():
                 self.client.send(dps)
 
