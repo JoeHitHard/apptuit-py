@@ -305,7 +305,7 @@ def test_valid_prefix():
     counter1.inc()
     dps = reporter._collect_data_points(reporter.registry)
     dps = sorted(dps, key=lambda x: x.metric)
-    assert_equals(dps[0].metric, "pre-counter1")
+    assert_equals(dps[0].metric, "pre-counter1.count")
 
 def test_none_prefix():
     """
@@ -325,7 +325,7 @@ def test_none_prefix():
     counter1.inc()
     dps = reporter._collect_data_points(reporter.registry)
     dps = sorted(dps, key=lambda x: x.metric)
-    assert_equals(dps[0].metric, "counter1")
+    assert_equals(dps[0].metric, "counter1.count")
 
 @patch('apptuit.apptuit_client.requests.post')
 def test_meta_metrics_of_reporter(mock_post):
