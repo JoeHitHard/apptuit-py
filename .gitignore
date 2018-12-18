@@ -101,7 +101,5 @@ venv.bak/
 /site
 
 *.iml
-*.xml
-*.xml___jb_tmp___
-simple.py
+*.xml*
 
