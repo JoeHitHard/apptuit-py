@@ -159,9 +159,7 @@ def test_no_environ_tags():
 
     registry = MetricsRegistry()
     reporter = ApptuitReporter(registry=registry, tags={"host": "reporter", "ip": "2.2.2.2"})
-    # this is to remove the meta-metrics created inside reporter
-    reporter.registry = MetricsRegistry()
-    counter = reporter.registry.counter("counter")
+    counter = registry.counter("counter")
     counter.inc(1)
     payload = reporter.client._create_payload(reporter._collect_data_points(reporter.registry))
     assert_equals(len(payload), 1)
@@ -189,16 +187,12 @@ def test_reporter_tags_with_global_env_tags():
     mock_environ.start()
     registry = MetricsRegistry()
     reporter = ApptuitReporter(registry=registry, tags={"host": "reporter", "ip": "2.2.2.2"})
-    # this is to remove the meta-metrics created inside reporter
-    reporter.registry = MetricsRegistry()
     counter = reporter.registry.counter("counter")
     counter.inc(1)
     payload = reporter.client._create_payload(reporter._collect_data_points(reporter.registry))
     assert_equals(len(payload), 1)
     assert_equals(payload[0]["tags"], {'host': 'reporter', 'ip': '2.2.2.2'})
     reporter = ApptuitReporter(registry=registry)
-    # this is to remove the meta-metrics created inside reporter
-    reporter.registry = MetricsRegistry()
     counter = reporter.registry.counter("counter")
     counter.inc(1)
     payload = reporter.client._create_payload(reporter._collect_data_points(reporter.registry))
