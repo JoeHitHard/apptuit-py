@@ -337,11 +337,11 @@ def test_meta_metrics_of_reporter(mock_post):
     reporter.start()
     sleep_time=3
     time.sleep(sleep_time)
-    dps = reporter._collect_data_points(reporter.meta_metrics_registry)
+    dps = reporter._collect_data_points(reporter._meta_metrics_registry)
     dps = sorted(dps, key=lambda x: x.metric)
-    assert_equals(len(dps), 26)
-    assert_equals(dps[10].metric, "api_call_time.max")
-    assert_equals(dps[18].metric, "number_of_failed_points.count")
-    assert_equals(dps[23].metric, "number_of_successful_points.count")
-    assert_equals(dps[25].metric, "number_of_total_points.count")
+    assert_equals(len(dps), 18)
+    assert_equals(dps[9].metric, "api_call_time.count")
+    assert_equals(dps[15].metric, "number_of_failed_points.count")
+    assert_equals(dps[16].metric, "number_of_successful_points.count")
+    assert_equals(dps[17].metric, "number_of_total_points.count")
 

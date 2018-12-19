@@ -28,7 +28,7 @@ class ApptuitReporter(Reporter):
         self.prefix = prefix if prefix is not None else ""
         self.__decoded_metrics_cache = {}
         self.client = Apptuit(token, api_endpoint, ignore_environ_tags=True)
-        self.meta_metrics_registry = MetricsRegistry()
+        self._meta_metrics_registry = MetricsRegistry()
 
     def report_now(self, registry=None, timestamp=None):
         """
@@ -38,22 +38,22 @@ class ApptuitReporter(Reporter):
             timestamp: timestamp of the data point
         """
         dps = self._collect_data_points(registry or self.registry, timestamp)
-        total_points_counter = self.meta_metrics_registry.counter(NUMBER_OF_TOTAL_POINTS)
+        total_points_counter = self._meta_metrics_registry.counter(NUMBER_OF_TOTAL_POINTS)
         total_points_counter.inc(len(dps))
-        meta_dps = self._collect_data_points(self.meta_metrics_registry)
+        meta_dps = self._collect_data_points(self._meta_metrics_registry)
         if dps:
             try:
-                with self.meta_metrics_registry.timer(API_CALL_TIMER).time():
+                with self._meta_metrics_registry.timer(API_CALL_TIMER).time():
                     self.client.send(dps + meta_dps)
-                    self.meta_metrics_registry.meter(NUMBER_OF_SUCCESSFUL_POINTS).mark(
+                    self._meta_metrics_registry.counter(NUMBER_OF_SUCCESSFUL_POINTS).inc(
                         len(dps) - len(meta_dps)
                     )
-                    self.meta_metrics_registry.meter(NUMBER_OF_FAILED_POINTS).mark(0)
+                    self._meta_metrics_registry.counter(NUMBER_OF_FAILED_POINTS).inc(0)
             except ApptuitSendException as e:
-                self.meta_metrics_registry.meter(NUMBER_OF_SUCCESSFUL_POINTS).mark(
+                self._meta_metrics_registry.counter(NUMBER_OF_SUCCESSFUL_POINTS).inc(
                     e.success - len(meta_dps)
                 )
-                self.meta_metrics_registry.meter(NUMBER_OF_FAILED_POINTS).mark(e.failed)
+                self._meta_metrics_registry.counter(NUMBER_OF_FAILED_POINTS).inc(e.failed)
                 raise e
 
     def _get_tags(self, key):
