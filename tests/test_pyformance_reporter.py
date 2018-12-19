@@ -4,7 +4,7 @@
 import os
 import random
 import time
-from nose.tools import assert_raises, assert_equals, assert_greater_equal, assert_true, assert_greater
+from nose.tools import assert_raises, assert_equals, assert_greater_equal, assert_true
 from requests.exceptions import HTTPError
 from apptuit import ApptuitSendException, APPTUIT_PY_TOKEN, APPTUIT_PY_TAGS
 from apptuit.pyformance.apptuit_reporter import ApptuitReporter
@@ -253,7 +253,6 @@ def test_globaltags_override():
     counter2.inc()
     counter3.inc()
     dps = reporter._collect_data_points(reporter.registry)
-    dps = sorted(dps, key=lambda x: x.metric)
     assert_equals(dps[0].tags, {"region": "us-west-2", "id": 1})
     assert_equals(dps[1].tags, {"region": "us-west-3", "id": 2, "new_tag": "foo"})
     assert_equals(dps[2].tags, {"region": "us-east-1"})
@@ -275,7 +274,6 @@ def test_globaltags_none():
     counter1.inc(2)
     counter2.inc()
     dps = reporter._collect_data_points(reporter.registry)
-    dps = sorted(dps, key=lambda x: x.metric)
     assert_equals(len(dps),2)
     assert_equals(dps[0].tags, {"region": "us-west-2", "id": 1})
     assert_equals(dps[1].tags, {"region": "us-west-3", "id": 2, "new_tag": "foo"})
@@ -296,7 +294,6 @@ def test_valid_prefix():
     counter1 = registry.counter('counter1')
     counter1.inc()
     dps = reporter._collect_data_points(reporter.registry)
-    dps = sorted(dps, key=lambda x: x.metric)
     assert_equals(dps[0].metric, "pre-counter1.count")
 
 def test_none_prefix():
@@ -314,7 +311,6 @@ def test_none_prefix():
     counter1 = registry.counter('counter1')
     counter1.inc()
     dps = reporter._collect_data_points(reporter.registry)
-    dps = sorted(dps, key=lambda x: x.metric)
     assert_equals(dps[0].metric, "counter1.count")
 
 @patch('apptuit.apptuit_client.requests.post')
@@ -333,7 +329,6 @@ def test_meta_metrics_of_reporter(mock_post):
     cput = registry.counter("aaaaa")
     cput.inc(1)
     dps = reporter._collect_data_points(reporter.registry)
-    dps = sorted(dps, key=lambda x: x.metric)
     assert_equals(len(dps), 1)
     assert_equals(dps[0].metric,"aaaaa.count")
     assert_equals(dps[0].value, 1)
