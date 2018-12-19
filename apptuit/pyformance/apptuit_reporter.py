@@ -40,12 +40,9 @@ class ApptuitReporter(Reporter):
             registry: pyformance Registry containing all metrics
             timestamp: timestamp of the data point
         """
-        try:
-            dps = self._collect_data_points(registry or self.registry, timestamp)
-            self._update_counter(NUMBER_OF_TOTAL_POINTS, len(dps))
-            meta_dps = self._collect_data_points(self._meta_metrics_registry)
-        except Exception as e:
-            print(e)
+        dps = self._collect_data_points(registry or self.registry, timestamp)
+        self._update_counter(NUMBER_OF_TOTAL_POINTS, len(dps))
+        meta_dps = self._collect_data_points(self._meta_metrics_registry)
         if dps:
             try:
                 with self._meta_metrics_registry.timer(API_CALL_TIMER).time():
