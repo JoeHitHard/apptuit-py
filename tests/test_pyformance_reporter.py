@@ -6,7 +6,7 @@ import random
 import time
 from nose.tools import assert_raises, assert_equals, assert_greater_equal, assert_true, assert_greater
 from requests.exceptions import HTTPError
-from apptuit import ApptuitException, APPTUIT_PY_TOKEN, APPTUIT_PY_TAGS
+from apptuit import ApptuitSendException, APPTUIT_PY_TOKEN, APPTUIT_PY_TAGS
 from apptuit.pyformance.apptuit_reporter import ApptuitReporter
 from pyformance import MetricsRegistry
 
@@ -36,7 +36,7 @@ def test_send_negative(mock_post):
         count = count + 1
         if count > 10000:
             break
-    with assert_raises(ApptuitException):
+    with assert_raises(ApptuitSendException):
         reporter.report_now()
 
 @patch('apptuit.apptuit_client.requests.post')
@@ -344,7 +344,7 @@ def test_meta_metrics_of_reporter(mock_post):
     cput.inc(1)
     dps = reporter._collect_data_points(reporter.registry)
     dps = sorted(dps, key=lambda x: x.metric)
-    assert_equals(len(dps), 21)
+    assert_equals(len(dps), 26)
     assert_equals(dps[0].metric,"aaaaa.count")
     assert_equals(dps[0].value, 1)
     reporter.start()
@@ -352,8 +352,8 @@ def test_meta_metrics_of_reporter(mock_post):
     time.sleep(sleep_time)
     dps = reporter._collect_data_points(reporter.registry)
     dps = sorted(dps, key=lambda x: x.metric)
-    assert_equals(len(dps), 21)
+    assert_equals(len(dps), 26)
     assert_equals(dps[10].metric, "api_call_time.count")
     assert_greater(dps[10].value, sleep_time-1)
-    assert_equals(dps[19].metric, "number_of_points_sent.count")
-    assert_greater(dps[19].value, sleep_time-1)
+    assert_equals(dps[19].metric, "number_of_points_failed.count")
+    #assert_greater(dps[19].value, sleep_time-1)
