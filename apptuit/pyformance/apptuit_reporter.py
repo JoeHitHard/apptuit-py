@@ -2,8 +2,7 @@
 Apptuit Pyformance Reporter
 """
 from pyformance.reporters.reporter import Reporter
-from apptuit import Apptuit, DataPoint, timeseries
-from apptuit.apptuit_client import ApptuitSendException
+from apptuit import Apptuit, DataPoint, timeseries, ApptuitSendException
 from apptuit.utils import _get_tags_from_environment
 
 NUMBER_OF_POINTS_SUCCESSFUL = "number_of_points_successful"
@@ -31,6 +30,7 @@ class ApptuitReporter(Reporter):
         self.__meter_for_number_of_dps_failed = self.registry.meter(NUMBER_OF_POINTS_FAILED)
         self.__timer_for_api_calls = self.registry.timer(API_CALL_TIMER)
         self.__meta_metrics_count = len(self.registry._get_timer_metrics(API_CALL_TIMER)) +\
+                                (len(self.registry._get_meter_metrics(NUMBER_OF_POINTS_FAILED))*2)
 
     def report_now(self, registry=None, timestamp=None):
         """
