@@ -394,7 +394,7 @@ class ApptuitSendException(ApptuitException):
         self.failed = failed
 
     def __repr__(self):
-        return self.errors
+        return self.__str__()
 
     def __str__(self):
         msg = str(self.failed) + " errors occurred\n"
