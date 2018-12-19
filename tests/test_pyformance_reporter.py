@@ -224,9 +224,7 @@ def test_collect_data_points():
                                token=token,
                                prefix="apr.",
                                tags=tags)
-    # this is to remove the meta-metrics created inside reporter
-    reporter.registry = MetricsRegistry()
-    counter_test = reporter.registry.counter('counter {"tk1":"tv1","tk2":"tv2"}')
+    counter_test = registry.counter('counter {"tk1":"tv1","tk2":"tv2"}')
     counter_test.inc(2)
     dps = reporter._collect_data_points(reporter.registry)
     assert_equals(len(dps), 1)
@@ -248,11 +246,9 @@ def test_globaltags_override():
                                reporting_interval=1,
                                token=token,
                                tags=tags)
-    # this is to remove the meta-metrics created inside reporter
-    reporter.registry = MetricsRegistry()
-    counter1 = reporter.registry.counter('counter1 {"region":"us-west-2","id": 1}')
-    counter2 = reporter.registry.counter('counter2 {"region":"us-west-3","id": 2, "new_tag": "foo"}')
-    counter3 = reporter.registry.counter('counter3')
+    counter1 = registry.counter('counter1 {"region":"us-west-2","id": 1}')
+    counter2 = registry.counter('counter2 {"region":"us-west-3","id": 2, "new_tag": "foo"}')
+    counter3 = registry.counter('counter3')
     counter1.inc(2)
     counter2.inc()
     counter3.inc()
@@ -274,10 +270,8 @@ def test_globaltags_none():
                                reporting_interval=1,
                                token=token,
                                tags=None)
-    # this is to remove the meta-metrics created inside reporter
-    reporter.registry = MetricsRegistry()
-    counter1 = reporter.registry.counter('counter1 {"region":"us-west-2","id": 1}')
-    counter2 = reporter.registry.counter('counter2 {"region":"us-west-3","id": 2, "new_tag": "foo"}')
+    counter1 = registry.counter('counter1 {"region":"us-west-2","id": 1}')
+    counter2 = registry.counter('counter2 {"region":"us-west-3","id": 2, "new_tag": "foo"}')
     counter1.inc(2)
     counter2.inc()
     dps = reporter._collect_data_points(reporter.registry)
@@ -299,9 +293,7 @@ def test_valid_prefix():
                                prefix="pre-",
                                token=token,
                                tags=tags)
-    # this is to remove the meta-metrics created inside reporter
-    reporter.registry = MetricsRegistry()
-    counter1 = reporter.registry.counter('counter1')
+    counter1 = registry.counter('counter1')
     counter1.inc()
     dps = reporter._collect_data_points(reporter.registry)
     dps = sorted(dps, key=lambda x: x.metric)
@@ -319,9 +311,7 @@ def test_none_prefix():
                                prefix=None,
                                token=token,
                                tags=tags)
-    # this is to remove the meta-metrics created inside reporter
-    reporter.registry = MetricsRegistry()
-    counter1 = reporter.registry.counter('counter1')
+    counter1 = registry.counter('counter1')
     counter1.inc()
     dps = reporter._collect_data_points(reporter.registry)
     dps = sorted(dps, key=lambda x: x.metric)
