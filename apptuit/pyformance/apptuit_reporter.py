@@ -1,12 +1,14 @@
 """
 Apptuit Pyformance Reporter
 """
+from pyformance import MetricsRegistry
 from pyformance.reporters.reporter import Reporter
 from apptuit import Apptuit, DataPoint, timeseries, ApptuitSendException
 from apptuit.utils import _get_tags_from_environment
 
-NUMBER_OF_POINTS_SUCCESSFUL = "number_of_points_successful"
-NUMBER_OF_POINTS_FAILED = "number_of_points_failed"
+NUMBER_OF_TOTAL_POINTS = "number_of_total_points"
+NUMBER_OF_SUCCESSFUL_POINTS = "number_of_successful_points"
+NUMBER_OF_FAILED_POINTS = "number_of_failed_points"
 API_CALL_TIMER = "api_call_time"
 
 class ApptuitReporter(Reporter):
@@ -24,13 +26,9 @@ class ApptuitReporter(Reporter):
                 environ_tags.update(self.tags)
             self.tags = environ_tags
         self.prefix = prefix if prefix is not None else ""
-        self.client = Apptuit(token, api_endpoint, ignore_environ_tags=True)
         self.__decoded_metrics_cache = {}
-        self.__meter_for_number_of_dps_successful = self.registry.meter(NUMBER_OF_POINTS_SUCCESSFUL)
-        self.__meter_for_number_of_dps_failed = self.registry.meter(NUMBER_OF_POINTS_FAILED)
-        self.__timer_for_api_calls = self.registry.timer(API_CALL_TIMER)
-        self.__meta_metrics_count = len(self.registry._get_timer_metrics(API_CALL_TIMER)) +\
-                                (len(self.registry._get_meter_metrics(NUMBER_OF_POINTS_FAILED))*2)
+        self.client = Apptuit(token, api_endpoint, ignore_environ_tags=True)
+        self.meta_metrics_registry = MetricsRegistry()
 
     def report_now(self, registry=None, timestamp=None):
         """
@@ -40,20 +38,22 @@ class ApptuitReporter(Reporter):
             timestamp: timestamp of the data point
         """
         dps = self._collect_data_points(registry or self.registry, timestamp)
+        total_points_counter = self.meta_metrics_registry.counter(NUMBER_OF_TOTAL_POINTS)
+        total_points_counter.inc(len(dps))
+        meta_dps = self._collect_data_points(self.meta_metrics_registry)
         if dps:
             try:
-                with self.__timer_for_api_calls.time():
-                    self.client.send(dps)
-                    self.__meter_for_number_of_dps_successful.mark(
-                        len(dps) - self.__meta_metrics_count
+                with self.meta_metrics_registry.timer(API_CALL_TIMER).time():
+                    self.client.send(dps + meta_dps)
+                    self.meta_metrics_registry.meter(NUMBER_OF_SUCCESSFUL_POINTS).mark(
+                        len(dps) - len(meta_dps)
                     )
+                    self.meta_metrics_registry.meter(NUMBER_OF_FAILED_POINTS).mark(0)
             except ApptuitSendException as e:
-                self.__meter_for_number_of_dps_successful.mark(
-                    e.success - self.__meta_metrics_count
+                self.meta_metrics_registry.meter(NUMBER_OF_SUCCESSFUL_POINTS).mark(
+                    e.success - len(meta_dps)
                 )
-                self.__meter_for_number_of_dps_failed.mark(
-                    e.failed
-                )
+                self.meta_metrics_registry.meter(NUMBER_OF_FAILED_POINTS).mark(e.failed)
                 raise e
 
     def _get_tags(self, key):
