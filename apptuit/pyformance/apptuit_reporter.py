@@ -47,7 +47,7 @@ class ApptuitReporter(Reporter):
             try:
                 with self._meta_metrics_registry.timer(API_CALL_TIMER).time():
                     self.client.send(dps + meta_dps)
-                    self._update_counter(NUMBER_OF_SUCCESSFUL_POINTS, len(dps) - len(meta_dps))
+                    self._update_counter(NUMBER_OF_SUCCESSFUL_POINTS, len(dps))
                     self._update_counter(NUMBER_OF_FAILED_POINTS, 0)
             except ApptuitSendException as e:
                 self._update_counter(NUMBER_OF_SUCCESSFUL_POINTS, e.success - len(meta_dps))
