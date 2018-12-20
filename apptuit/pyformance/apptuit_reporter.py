@@ -6,9 +6,9 @@ from pyformance.reporters.reporter import Reporter
 from apptuit import Apptuit, DataPoint, timeseries, ApptuitSendException
 from apptuit.utils import _get_tags_from_environment
 
-NUMBER_OF_TOTAL_POINTS = "apptuit.reporter.sent.total"
-NUMBER_OF_SUCCESSFUL_POINTS = "apptuit.reporter.sent.successful"
-NUMBER_OF_FAILED_POINTS = "apptuit.reporter.sent.failed"
+NUMBER_OF_TOTAL_POINTS = "apptuit.reporter.send.total"
+NUMBER_OF_SUCCESSFUL_POINTS = "apptuit.reporter.send.successful"
+NUMBER_OF_FAILED_POINTS = "apptuit.reporter.send.failed"
 API_CALL_TIMER = "apptuit.reporter.send.time"
 
 class ApptuitReporter(Reporter):
