@@ -1,6 +1,7 @@
 """
 Apptuit Pyformance Reporter
 """
+import sys
 from pyformance import MetricsRegistry
 from pyformance.reporters.reporter import Reporter
 from apptuit import Apptuit, DataPoint, timeseries, ApptuitSendException
@@ -11,10 +12,35 @@ NUMBER_OF_SUCCESSFUL_POINTS = "apptuit.reporter.send.successful"
 NUMBER_OF_FAILED_POINTS = "apptuit.reporter.send.failed"
 API_CALL_TIMER = "apptuit.reporter.send.time"
 
+def _error_handler(successful_points, failed_points, errors):
+    """
+    This is a default error handler for Apptuit.send() api
+    :param successful_points: Number of points successfully updated
+    :param failed_points: Number of points failed to update
+    :param errors: a list containing datapoints failed and their errors
+            errors=[
+            {"datapoint": dp1, "error": er1},
+            {"datapoint": dp2, "error": er2}
+            ]
+    :return: None
+    """
+    sys.stderr.write(str(ApptuitSendException(
+        successful_points, failed_points, errors
+    )))
+
 class ApptuitReporter(Reporter):
 
     def __init__(self, registry=None, reporting_interval=10, token=None,
-                 api_endpoint="https://api.apptuit.ai", prefix="", tags=None):
+                 api_endpoint="https://api.apptuit.ai", prefix="", tags=None,
+                 error_handler=_error_handler):
+        """
+            :param registry: A metric registry object which contains all metrics.
+            :param reporting_interval: An integer specifying time to report.
+            :param token: A string containing Apptuit API Token.
+            :param prefix: A string containing prefix added to for all metrics.
+            :param tags: A dictionary containing tags and values included to all metrics.
+            :param error_handler: A function object refer _error_handler for more details.
+        """
         super(ApptuitReporter, self).__init__(registry=registry,
                                               reporting_interval=reporting_interval)
         self.endpoint = api_endpoint
@@ -29,6 +55,7 @@ class ApptuitReporter(Reporter):
         self.__decoded_metrics_cache = {}
         self.client = Apptuit(token, api_endpoint, ignore_environ_tags=True)
         self._meta_metrics_registry = MetricsRegistry()
+        self.error_handler = error_handler
 
     def _update_counter(self, key, value):
         self._meta_metrics_registry.counter(key).inc(value)
@@ -52,6 +79,8 @@ class ApptuitReporter(Reporter):
             except ApptuitSendException as e:
                 self._update_counter(NUMBER_OF_SUCCESSFUL_POINTS, e.success - len(meta_dps))
                 self._update_counter(NUMBER_OF_FAILED_POINTS, e.failed)
+                if self.error_handler:
+                    self.error_handler(e.success, e.failed, e.errors)
                 raise e
 
     def _get_tags(self, key):
