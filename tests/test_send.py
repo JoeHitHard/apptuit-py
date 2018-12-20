@@ -227,19 +227,6 @@ def test_apptuit_send_exception_400(mock_post):
         client.send(dps)
 
 @patch('apptuit.apptuit_client.requests.post')
-def test_apptuit_send_exception_400(mock_post):
-    """
-    Test for the case when there is an error from the backend for send
-    """
-    mock_post.return_value.status_code = 400
-    token = "asdashdsauh_8aeraerf"
-    client = Apptuit(token)
-    dp = DataPoint("test", {"tk": "tv"}, 123, 123)
-    dps = [dp]
-    with assert_raises(ApptuitSendException):
-        client.send(dps)
-
-@patch('apptuit.apptuit_client.requests.post')
 def test_apptuit_send_exception_401(mock_post):
     """
     Test for the case when there is an error from the backend for send
