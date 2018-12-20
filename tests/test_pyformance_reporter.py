@@ -344,4 +344,4 @@ def test_meta_metrics_of_reporter(mock_post):
     assert_equals(dps[1].metric, "apptuit.reporter.send.successful.count")
     assert_equals(dps[11].metric, "apptuit.reporter.send.time.count")
     assert_equals(dps[17].metric, "apptuit.reporter.send.total.count")
-
+    
