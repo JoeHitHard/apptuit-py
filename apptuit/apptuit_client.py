@@ -413,6 +413,7 @@ class ApptuitSendException(ApptuitException):
                 msg += "In the datapoint " + str(dp) + " Error Occurred: " + str(error_msg) + '\n'
             return msg
         else:
-            msg = "Failed to send " + str(self.failed) + \
-                " datapoints. Error Occured: " + self.errors + "\n"
+            msg = "Status Code: " + str(self.status_code) + \
+                "; Failed to send " + str(self.failed) + \
+                " datapoints; Error Occured: " + self.errors + "\n"
             return msg

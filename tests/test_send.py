@@ -210,5 +210,5 @@ def test_apptuit_send_exception():
     err = str(ApptuitSendException(
         401, 0, 1, "test error"
     ))
-    assert_equals(err, "Failed to send 1 datapoints. Error Occured: test error\n")
+    assert_equals(err, "Status Code: 401; Failed to send 1 datapoints; Error Occured: test error\n")
 
