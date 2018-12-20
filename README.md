@@ -27,7 +27,7 @@ Supported Python versions: 2.7.x, 3.4, 3.5, 3.6, 3.7
    * [Sending Data using ApptuitReporter](#sending-the-data-using-apptuitreporter)
      * [Getting started with Apptuit pyformance reporter](#getting-started-with-apptuit-pyformance-reporter)
      * [Error Handling](#error-handling)
-     * [Tags/Metadata](#tags-and-metadata)
+     * [Tags/Metadata](#tagsmetadata)
      * [Meta Metrics](#meta-metrics)
 * [Sending Data using `send()` API](#sending-data-using-send-api)
  - [Querying for Data](#querying-for-data)
@@ -281,9 +281,10 @@ can pass `error_handler=None` which will disable default error handler.
 ```python
 from apptuit.pyformance import ApptuitReporter
 from pyformance import MetricsRegistry
-
+import logging
 reporter_tags = {"service": "order-service"}
 registry = MetricsRegistry()
+my_apptuit_token = "token"
 #reporter with default error handler (writes to stderr)
 reporter = ApptuitReporter(token=my_apptuit_token,
                            registry=registry,
@@ -291,25 +292,33 @@ reporter = ApptuitReporter(token=my_apptuit_token,
                            tags=reporter_tags)
 
 #reporter without error handler
-reporter = ApptuitReporter(token=my_apptuit_token,
-                           registry=registry,
-                           reporting_interval=60,
-                           tags=reporter_tags
-                           error_handler=None)
+reporter_with_no_error_handler = ApptuitReporter(
+                            token=my_apptuit_token,
+                            registry=registry,
+                            reporting_interval=60,
+                            tags=reporter_tags,
+                            error_handler=None
+                            )
 
-def custom_error_handler(exception_object, logger_object):
+def custom_error_handler(exception_object, **kwargs):
+    logger_object = kwargs["logger_object"]
     logger_object.error(str(exception_object))
+    
 lobj = logging.getLogger('tcpserver')
 #reporter with custom error handler
-reporter = ApptuitReporter(token=my_apptuit_token,
-                           registry=registry,
-                           reporting_interval=60,
-                           tags=reporter_tags
-                           error_handler=custom_error_handler
-                           logger_object=lobj)
+reporter_with_custom_error_handler = ApptuitReporter(
+                            token=my_apptuit_token,
+                            registry=registry,
+                            reporting_interval=60,
+                            tags=reporter_tags,
+                            error_handler=custom_error_handler,
+                            logger_object=lobj # the parameter name should 
+                            # not match with the actual parameter name of 
+                            # ApptuitReporter
+                            )
 ```
 
-#### Tags and Metadata
+#### Tags/Metadata
 
 When creating the ApptuitReporter, you can provide a set of tags (referred as reporter tags from now on)
 which will be part of all the metrics reported by that reporter. However, in order to provide tags
