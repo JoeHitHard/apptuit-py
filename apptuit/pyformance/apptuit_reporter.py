@@ -12,27 +12,20 @@ NUMBER_OF_SUCCESSFUL_POINTS = "apptuit.reporter.send.successful"
 NUMBER_OF_FAILED_POINTS = "apptuit.reporter.send.failed"
 API_CALL_TIMER = "apptuit.reporter.send.time"
 
-def _error_handler(successful_points, failed_points, errors):
+def _default_error_handler(apptuit_send_exception):
     """
     This is a default error handler for Apptuit.send() api
-    :param successful_points: Number of points successfully updated
-    :param failed_points: Number of points failed to update
-    :param errors: a list containing datapoints failed and their errors
-            errors=[
-            {"datapoint": dp1, "error": er1},
-            {"datapoint": dp2, "error": er2}
-            ]
+    :param apptuit_send_exception: An ApptuitSendException object
+        containing error details.
     :return: None
     """
-    sys.stderr.write(str(ApptuitSendException(
-        successful_points, failed_points, errors
-    )))
+    sys.stderr.write(str(apptuit_send_exception))
 
 class ApptuitReporter(Reporter):
 
     def __init__(self, registry=None, reporting_interval=10, token=None,
                  api_endpoint="https://api.apptuit.ai", prefix="", tags=None,
-                 error_handler=_error_handler):
+                 error_handler=_default_error_handler):
         """
             :param registry: A metric registry object which contains all metrics.
             :param reporting_interval: An integer specifying time to report.
@@ -77,10 +70,11 @@ class ApptuitReporter(Reporter):
                     self._update_counter(NUMBER_OF_SUCCESSFUL_POINTS, len(dps))
                     self._update_counter(NUMBER_OF_FAILED_POINTS, 0)
             except ApptuitSendException as e:
-                self._update_counter(NUMBER_OF_SUCCESSFUL_POINTS, e.success - len(meta_dps))
+                e.success -= len(meta_dps)
+                self._update_counter(NUMBER_OF_SUCCESSFUL_POINTS, e.success)
                 self._update_counter(NUMBER_OF_FAILED_POINTS, e.failed)
                 if self.error_handler:
-                    self.error_handler(e.success, e.failed, e.errors)
+                    self.error_handler(e)
                 raise e
 
     def _get_tags(self, key):
