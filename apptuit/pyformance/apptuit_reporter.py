@@ -12,7 +12,7 @@ NUMBER_OF_SUCCESSFUL_POINTS = "apptuit.reporter.send.successful"
 NUMBER_OF_FAILED_POINTS = "apptuit.reporter.send.failed"
 API_CALL_TIMER = "apptuit.reporter.send.time"
 
-def default_error_handler(apptuit_send_exception, kwargs):
+def default_error_handler(apptuit_send_exception, **kwargs):
     """
     This is a default error handler for Apptuit.send() api
     :param apptuit_send_exception: An ApptuitSendException object
@@ -77,7 +77,7 @@ class ApptuitReporter(Reporter):
                 self._update_counter(NUMBER_OF_SUCCESSFUL_POINTS, e.success)
                 self._update_counter(NUMBER_OF_FAILED_POINTS, e.failed)
                 if self.error_handler:
-                    self.error_handler(e, self.kwargs_for_error_handler)
+                    self.error_handler(e, **self.kwargs_for_error_handler)
                 raise e
 
     def _get_tags(self, key):
