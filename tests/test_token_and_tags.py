@@ -40,6 +40,7 @@ def test_tags_env_variable_parsing_negative():
         "a: [, b: a",
         ",:a,ea:aa,"
         '"tagk1": tagv1',
+        ":a,",
         'tagk1: tagv11: tagv12',
         'tag',
         '  tagk1 : 22,error,tagk2  : tagv2  ',
