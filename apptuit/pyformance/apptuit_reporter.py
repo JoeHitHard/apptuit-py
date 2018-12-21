@@ -22,7 +22,7 @@ def default_error_handler(status_code, successful, failed, errors):
     :return: None
     """
     sys.stderr.write(str(ApptuitSendException(
-        status_code, successful, failed, errors
+        "Error Handler:", status_code, successful, failed, errors
     )))
 
 class ApptuitReporter(Reporter):

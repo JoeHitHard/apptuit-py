@@ -204,11 +204,11 @@ def test_apptuit_send_exception():
     Test that ApptuitSendException str is valid
     """
     err = str(ApptuitSendException(
-        400, 1, 1, [{"datapoint": "test", "error": "test_error"}]
+        "test", 400, 1, 1, [{"datapoint": "test", "error": "test_error"}]
     ))
     assert_equals(err, "1 errors occurred\nIn the datapoint test Error Occurred: test_error\n")
     err = str(ApptuitSendException(
-        401, 0, 1, "test error"
+        "test", 401, 0, 1, "test error"
     ))
     assert_equals(err, "Status Code: 401; Failed to send 1 datapoints; Error Occured: test error\n")
 
