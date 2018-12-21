@@ -140,6 +140,7 @@ class Apptuit(object):
             if status_code == 400:
                 resp_json = response.json()
                 raise ApptuitSendException(
+                    "Apptuit.send() failed, Due to %d error" % (status_code),
                     status_code, resp_json["success"],
                     resp_json["failed"], resp_json["errors"]
                 )
@@ -147,7 +148,9 @@ class Apptuit(object):
                 error = "Apptuit API token is invalid."
             else:
                 error = "Server Error."
-            raise ApptuitSendException(response.status_code, 0, len(datapoints), error)
+            raise ApptuitSendException("Apptuit.send() failed, Due to %d error" % (status_code),
+                                       status_code, 0, len(datapoints), error
+                                       )
 
     def query(self, query_str, start, end=None, retry_count=0):
         """
@@ -397,8 +400,12 @@ class ApptuitException(Exception):
         return self.msg
 
 class ApptuitSendException(ApptuitException):
-
-    def __init__(self, status_code, success=None, failed=None, errors=None):
+    """
+        An exception raised by Apptuit.send()
+    """
+    def __init__(self, msg, status_code, success=None, failed=None, errors=None):
+        super(ApptuitSendException, self).__init__(msg)
+        self.msg = msg
         self.status_code = status_code
         self.errors = errors
         self.success = success
