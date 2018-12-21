@@ -139,7 +139,10 @@ class Apptuit(object):
             status_code = response.status_code
             if status_code == 400:
                 resp_json = response.json()
-                raise ApptuitSendException(status_code,resp_json["success"], resp_json["failed"], resp_json["errors"])
+                raise ApptuitSendException(
+                    status_code, resp_json["success"],
+                    resp_json["failed"], resp_json["errors"]
+                )
             elif status_code == 401:
                 error = "Apptuit API token is invalid."
             else:
@@ -393,7 +396,7 @@ class ApptuitException(Exception):
     def __str__(self):
         return self.msg
 
-class ApptuitSendException(ApptuitException):
+class ApptuitSendException(Exception):
 
     def __init__(self, status_code, success=None, failed=None, errors=None):
         self.status_code = status_code
@@ -412,8 +415,7 @@ class ApptuitSendException(ApptuitException):
                 error_msg = error["error"]
                 msg += "In the datapoint " + str(dp) + " Error Occurred: " + str(error_msg) + '\n'
             return msg
-        else:
-            msg = "Status Code: " + str(self.status_code) + \
-                "; Failed to send " + str(self.failed) + \
-                " datapoints; Error Occured: " + self.errors + "\n"
-            return msg
+        msg = "Status Code: " + str(self.status_code) + \
+              "; Failed to send " + str(self.failed) + \
+              " datapoints; Error Occured: " + self.errors + "\n"
+        return msg
