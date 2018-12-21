@@ -274,10 +274,11 @@ def handle_request(request):
 
 ```
 #### Error Handling
-While sending data from ApptuitReporter some datapoints might have errors you can use the parameter error_handler 
-to work on those errors, you can pass any parameters to that error handler as kwargs to ApptuitReporter object.
-There is a default error handler which will write the errors to stderr. If you dont want any error handling you 
-can pass `error_handler=None` which will disable default error handler.
+While sending data from ApptuitReporter some datapoints might have errors or server errors might occur, you can 
+use the parameter error_handler to work on those errors. You cant pass any parameters to that error handler but 
+can use the python feature like closure or use partial from functools package. There is a default error handler 
+which will write the errors to stderr. If you dont want any error handling you can pass `error_handler=None` which 
+will disable default error handler.
 ```python
 from apptuit.pyformance import ApptuitReporter
 from pyformance import MetricsRegistry
@@ -300,22 +301,52 @@ reporter_with_no_error_handler = ApptuitReporter(
                             error_handler=None
                             )
 
-def custom_error_handler(exception_object, **kwargs):
-    logger_object = kwargs["logger_object"]
-    logger_object.error(str(exception_object))
-    
-lobj = logging.getLogger('tcpserver')
-#reporter with custom error handler
-reporter_with_custom_error_handler = ApptuitReporter(
+#reporter with custom error_handler using partial
+def custom_error_handler_partial(logger, status_code, successful, failed, errors):
+    logger.error(str(ApptuitSendException(
+        status_code, successful, failed, errors
+    )))
+from functools import partial
+logger = logging.getLogger("logger key")
+partaial_function_obj_of_custom_error_handler = partial(custom_error_handler_partial,logger)
+
+reporter_with_no_error_handler = ApptuitReporter(
                             token=my_apptuit_token,
                             registry=registry,
                             reporting_interval=60,
                             tags=reporter_tags,
-                            error_handler=custom_error_handler,
-                            logger_object=lobj # the parameter name should 
-                            # not match with the actual parameter name of 
-                            # ApptuitReporter
+                            error_handler=partaial_function_obj_of_custom_error_handler
                             )
+
+
+#reporter with custom error_handler using closure
+...
+import logging
+from apptuit import ApptuitSendException
+from apptuit.pyformance.apptuit_reporter import ApptuitReporter
+...
+
+class OrderService:
+    def __init__(self, apptuit_token):
+        ...
+        self.logger = logging.getLogger("OrderService")
+        ...
+
+    def init_reporter(self, token, registry):
+        ...
+        def custom_error_handler_closure(status_code, successful, failed, errors):
+            logger = self.logger
+            logger.error(str(ApptuitSendException(
+                status_code, successful, failed, errors
+            )))
+            
+        self.reporter = ApptuitReporter(...,
+                                    error_handler=custom_error_handler_closure)
+        # reporter.start() will start reporting the data asynchronously based on the reporting_interval set.
+        self.reporter.start()
+        ...
+
+
 ```
 
 #### Tags/Metadata
