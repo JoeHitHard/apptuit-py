@@ -396,7 +396,7 @@ class ApptuitException(Exception):
     def __str__(self):
         return self.msg
 
-class ApptuitSendException(Exception):
+class ApptuitSendException(ApptuitException):
 
     def __init__(self, status_code, success=None, failed=None, errors=None):
         self.status_code = status_code
