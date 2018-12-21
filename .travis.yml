@@ -12,6 +12,7 @@ install:
 - if [[ $TRAVIS_PYTHON_VERSION != 2.6 ]]; then pip install pylint; fi
 - pip install -r requirements.txt
 - pip install coverage
+- pip install hypothesis
 before_script:
 - if [[ "$TRAVIS_PYTHON_VERSION" = "2.7" ]]; then export IS_PRIMARY_MATRIX_JOB=true;
   fi
