@@ -1,13 +1,15 @@
 """
 Tests for token and global tags environment variables
 """
-
+import json
 import math
 import time
 import os
 from nose.tools import assert_equals, assert_raises
 from pyformance import MetricsRegistry
-
+from hypothesis import strategies as st, given
+from string import digits, ascii_letters
+from apptuit.utils import _contains_valid_chars
 from apptuit import apptuit_client, Apptuit, DataPoint, APPTUIT_PY_TOKEN, APPTUIT_PY_TAGS
 from apptuit.pyformance import ApptuitReporter
 
@@ -32,44 +34,41 @@ def test_token_positive():
         assert_equals(client.token, expected)
         mock_environ.stop()
 
-def test_tags_env_variable_parsing_negative():
+all_characters = ascii_letters + digits + "-_./" + "[]\"'?/><;:{}|/*"
+@given(st.dictionaries(st.text(alphabet=all_characters, min_size=1), st.text(alphabet=all_characters, min_size=1), min_size=1 ))
+def test_environ_tags_negative(env_tags_value):
     """
-        Test that we fail when the value of global tags env variable is in an invalid format
+    Test that invalid environ tags raises ValueError
     """
-    test_cases = [
-        "a: [, b: a",
-        ",:a,ea:aa,"
-        '"tagk1": tagv1',
-        ":a,",
-        'tagk1: tagv11: tagv12',
-        'tag',
-        '  tagk1 : 22,error,tagk2  : tagv2  ',
-        '  tagk1 : 22,tagk1:tagv11:tagv12,tagk2  : tagv2  '
-    ]
-    for env_tags_value in test_cases:
-        mock_environ = patch.dict(os.environ, {APPTUIT_PY_TAGS: env_tags_value})
-        mock_environ.start()
-        with assert_raises(ValueError):
-            apptuit_client._get_tags_from_environment()
-        mock_environ.stop()
+    env_tags_str = ""
+    invalid_dict = True
+    for key in env_tags_value:
+        if _contains_valid_chars(key+env_tags_value[key]) and invalid_dict:
+            invalid_dict = True
+            continue
+        env_tags_str += key + ":" + env_tags_value[key] + ","
+        invalid_dict = False
+    if invalid_dict:
+        return
+    mock_environ = patch.dict(os.environ, {APPTUIT_PY_TAGS: env_tags_str})
+    mock_environ.start()
+    with assert_raises(ValueError):
+        apptuit_client._get_tags_from_environment()
+    mock_environ.stop()
 
-def test_tags_env_variable_parsing_positive():
+valid_characters = ascii_letters + digits + "-_./"
+@given(st.dictionaries(st.text(alphabet=valid_characters,min_size=1), st.text(alphabet=valid_characters,min_size=1)))
+def test_environ_tags_positive(env_tags_value):
     """
-        Test that wel are able to parse the global tags from environment variable
+    Test that valid environ tags donot raise error
     """
-    test_cases = [
-        (" ", {}),
-        ('tagk1: 22, tagk2: tagv2', {"tagk1": "22", "tagk2": "tagv2"}),
-        ('tagk1: 22, , tagk2: tagv2', {"tagk1": "22", "tagk2": "tagv2"}),
-        ('  tagk1 : 22,,tagk2  : tagv2  ', {"tagk1": "22", "tagk2": "tagv2"}),
-        (',tagk1: 22, tagk2: tagv2,', {"tagk1": "22", "tagk2": "tagv2"}),
-        (', , , , tagk1: 22, tagk2: tagv2, , ,  , ,', {"tagk1": "22", "tagk2": "tagv2"})
-    ]
-    for env_tags_value, expected_global_tags in test_cases:
-        mock_environ = patch.dict(os.environ, {APPTUIT_PY_TAGS: env_tags_value})
-        mock_environ.start()
-        assert_equals(apptuit_client._get_tags_from_environment(), expected_global_tags)
-        mock_environ.stop()
+    env_tags_str = ""
+    for key in env_tags_value:
+        env_tags_str += key + ":" + env_tags_value[key] + ","
+    mock_environ = patch.dict(os.environ, {APPTUIT_PY_TAGS: env_tags_str})
+    mock_environ.start()
+    assert_equals(apptuit_client._get_tags_from_environment(),env_tags_value)
+    mock_environ.stop()
 
 def test_token_negative():
     """
@@ -169,10 +168,15 @@ def test_no_environ_tags():
     assert_equals(payload[0]["tags"], {'host': 'reporter', 'ip': '2.2.2.2'})
     mock_environ.stop()
 
-def test_reporter_tags_with_global_env_tags():
+valid_characters = ascii_letters + digits + "-_./"
+valid_dict = st.dictionaries(st.text(alphabet=valid_characters, min_size=1, max_size=3),
+                             st.text(alphabet=valid_characters, min_size=1, max_size=3),
+                             max_size=3)
+@given(valid_dict, valid_dict, valid_dict)
+def test_metric_reporter_env_tags(env_tags, reporer_tags, metric_tags):
     """
-        Test that reporter tags take priority
-        TODO:
+    Test that metric tags take priority over reporter and reporter over environ tags
+    TODO:
         We have 8 possible combinations -
             1. global env tags: true, reporter tags: true, metric tags: true
             2. global env tags: true, reporter tags: true, metric tags: false
@@ -183,24 +187,29 @@ def test_reporter_tags_with_global_env_tags():
             7. global env tags: false, reporter tags: false, metric tags: true
             8. global env tags: false, reporter tags: false, metric tags: false
     """
-
-
-    mock_environ = patch.dict(os.environ, {APPTUIT_PY_TOKEN: "environ_token",
-                                           APPTUIT_PY_TAGS: 'host: environ, ip: 1.1.1.1'})
+    if not env_tags and not reporer_tags and not metric_tags:
+        return
+    env_tags_str = ""
+    for key in env_tags:
+        env_tags_str += key + ":" + env_tags[key] + ","
+    mock_environ = patch.dict(os.environ, {
+        APPTUIT_PY_TOKEN: "token",
+        APPTUIT_PY_TAGS: env_tags_str
+    })
     mock_environ.start()
     registry = MetricsRegistry()
-    reporter = ApptuitReporter(registry=registry, tags={"host": "reporter", "ip": "2.2.2.2"})
-    counter = registry.counter("counter")
+    reporter = ApptuitReporter(registry=registry, tags=reporer_tags)
+    metric_tags_str = "counter" + json.dumps(metric_tags)
+    counter = registry.counter(metric_tags_str)
     counter.inc(1)
     payload = reporter.client._create_payload(reporter._collect_data_points(reporter.registry))
     assert_equals(len(payload), 1)
-    assert_equals(payload[0]["tags"], {'host': 'reporter', 'ip': '2.2.2.2'})
-    reporter = ApptuitReporter(registry=registry)
-    counter = registry.counter("counter")
-    counter.inc(1)
-    payload = reporter.client._create_payload(reporter._collect_data_points(reporter.registry))
-    assert_equals(len(payload), 1)
-    assert_equals(payload[0]["tags"], {"host": "environ", "ip": "1.1.1.1"})
+    final_dict = {}
+    final_dict.update(env_tags)
+    final_dict.update(reporer_tags)
+    final_dict.update(metric_tags)
+    print(env_tags, reporer_tags, metric_tags)
+    assert_equals(payload[0]["tags"], final_dict)
     mock_environ.stop()
 
 def test_tags_of_metric_take_priority():
