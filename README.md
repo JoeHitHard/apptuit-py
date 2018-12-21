@@ -308,14 +308,14 @@ def custom_error_handler_partial(logger, status_code, successful, failed, errors
     )))
 from functools import partial
 logger = logging.getLogger("logger key")
-partaial_function_obj_of_custom_error_handler = partial(custom_error_handler_partial,logger)
+apptuit_custom_error_handler = partial(custom_error_handler_partial,logger)
 
 reporter_with_no_error_handler = ApptuitReporter(
                             token=my_apptuit_token,
                             registry=registry,
                             reporting_interval=60,
                             tags=reporter_tags,
-                            error_handler=partaial_function_obj_of_custom_error_handler
+                            error_handler=apptuit_custom_error_handler
                             )
 
 

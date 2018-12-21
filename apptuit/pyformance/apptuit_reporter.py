@@ -36,7 +36,7 @@ class ApptuitReporter(Reporter):
             :param token: A string containing Apptuit API Token.
             :param prefix: A string containing prefix added to for all metrics.
             :param tags: A dictionary containing tags and values included to all metrics.
-            :param error_handler: A function object refer _error_handler for more details.
+            :param error_handler: A function object refer default_error_handler for more details.
         """
         super(ApptuitReporter, self).__init__(registry=registry,
                                               reporting_interval=reporting_interval)
