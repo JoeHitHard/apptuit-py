@@ -37,6 +37,8 @@ def test_tags_env_variable_parsing_negative():
         Test that we fail when the value of global tags env variable is in an invalid format
     """
     test_cases = [
+        "a: [, b: a",
+        ",:a,ea:aa,"
         '"tagk1": tagv1',
         'tagk1: tagv11: tagv12',
         'tag',
