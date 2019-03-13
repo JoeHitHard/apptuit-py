@@ -225,7 +225,7 @@ class ApptuitReporter(Reporter):
             try:
                 self.report_now(self.registry)
             except Exception:
-                continue
+                pass
             end = time.time()
             wait_time = max(0, self.reporting_interval-(end-start))
             time.sleep(wait_time)
