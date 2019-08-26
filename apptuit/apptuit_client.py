@@ -248,6 +248,11 @@ class Apptuit(object):
                         self.backoff_with_jitter(try_number)
                         continue
                 raise apptuit_exception
+            except ConnectionError as conn_err:
+                if retry_count >= try_number:
+                    self.backoff_with_jitter(try_number)
+                    continue
+                raise conn_err
 
     @staticmethod
     def backoff_with_jitter(try_number):
@@ -348,6 +353,11 @@ class Apptuit(object):
                             continue
                 raise ApptuitException("Failed to get response from Apptuit"
                                        "query service due to exception: %s" % str(http_error))
+            except ConnectionError as connection_error:
+                if retry_count >= try_number:
+                    self.backoff_with_jitter(try_number)
+                    continue
+                raise connection_error
             except requests.exceptions.SSLError as ssl_error:
                 raise ApptuitException("Failed to get response from Apptuit"
                                        "query service due to exception: %s" % str(ssl_error))
