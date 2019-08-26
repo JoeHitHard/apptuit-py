@@ -165,13 +165,13 @@ def test_multiple_retries_conn_err(mock_get):
     the backend API. Since we patch the status code as 504 and create an HTTPError
     as a side effect of the get call, we cannot verify that the retries succeed.
     """
-    mock_get.side_effect = ConnectionError
+    mock_get.side_effect = requests.exceptions.ConnectionError
     token = 'sdksdk203afdsfj_sadasd3939'
     client = Apptuit(sanitize_mode=None, token=token)
     query = "fetch('nyc.taxi.rides')"
     start = 1406831400
     end = 1407609000
-    with assert_raises(ConnectionError):
+    with assert_raises(requests.exceptions.ConnectionError):
         client.query(query, start, end, retry_count=3)
     assert_equals(mock_get.call_count, 4)
 
