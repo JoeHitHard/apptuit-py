@@ -141,8 +141,6 @@ def test_send_with_retry_con_err(mock_post):
         dps.append(DataPoint(metric=metric_name, tags=tags, timestamp=ts + i, value=random.random()))
     with assert_raises(ConnectionError):
         client.send(dps, retry_count=1)
-    assert_equals(mock_post.call_count, 2)
-
 
 @patch('apptuit.apptuit_client.requests.post')
 def test_send_413_error(mock_post):
