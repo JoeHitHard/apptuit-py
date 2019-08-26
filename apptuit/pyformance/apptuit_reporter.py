@@ -94,8 +94,9 @@ class ApptuitReporter(Reporter):
             sanitize_mode: Is a string value which will enable sanitizer, sanitizer will
                     automatically change your metric names to be compatible with apptuit
                     or prometheus. Set it to None if not needed.
-            retry_count: This will allow you to retry to send DP's in case of errors. this uses Backoff-jitter
-                    algo to retry `https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/`
+            retry_count: This will allow you to retry to send DP's in case of errors.
+                This uses Backoff-jitter algo to retry.
+                `https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/`
         """
         super(ApptuitReporter, self).__init__(registry=registry,
                                               reporting_interval=reporting_interval)

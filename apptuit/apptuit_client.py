@@ -230,8 +230,10 @@ class Apptuit(object):
         Params:
             datapoints: A list of DataPoint objects
             timeout: Timeout (in seconds) for the HTTP request
-            retry_count: This will allow you to retry to send DP's in case of errors. This uses Backoff-jitter
-                    algo to retry `https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/`
+            retry_count: This will allow you to retry to send
+            DP's in case of errors. This uses Backoff-jitter
+            algo to retry
+            `https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/`
         It raises an ApptuitSendException in case the backend API responds with an error
         """
         if not datapoints:
@@ -323,8 +325,10 @@ class Apptuit(object):
                 start - the start timestamp (unix epoch in seconds)
                 end - the end timestamp (unix epoch in seconds)
                 timeout - timeout (in seconds) for the HTTP request
-                retry_count: This will allow you to retry to send DP's in case of errors. this uses Backoff-jitter
-                    algo to retry `https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/`
+                retry_count: This will allow you to retry to send
+                DP's in case of errors. this uses Backoff-jitter
+                algo to retry
+                `https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/`
             Returns a QueryResult object
             Individual queried items can be accessed by indexing the result object using either
             the integer index of the metric in the query or the metric name.
